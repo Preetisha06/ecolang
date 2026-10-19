@@ -1,0 +1,11 @@
+// divisions and remainders by constants, with negative numbers too
+fn divs(n: int) -> int {
+  let sum: int = 0;
+  let i: int = -n;
+  while (i < n) {
+    let x: int = i * 12345;
+    sum = sum + x / 11 + x % 11 + x / 7 + x % 7 + x / 1000 + x % 1000 + x / 3 - x % 9 + x / 2147483648;
+    i = i + 1;
+  }
+  return sum;
+}

@@ -1,0 +1,15 @@
+// passing an array to a function: the function changes the same array
+fn fill(a: int[], n: int) -> int {
+  let i: int = 0;
+  while (i < n) {
+    a[i] = i * i;
+    i = i + 1;
+  }
+  return 0;
+}
+
+fn main() -> int {
+  let a: int[10];
+  fill(a, 10);
+  return a[3] + a[9];
+}

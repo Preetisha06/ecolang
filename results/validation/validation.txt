@@ -1,0 +1,61 @@
+Machine: Intel(R) Core(TM) Ultra 7 155U
+Compiler: gcc -O0 -fwrapv, fastest of 5 rounds x 7 timings
+
+1) All benchmarks and builds together (45 runs)
+   Pearson correlation of log(estimated cycles) vs log(measured time): 0.994
+   Spearman rank correlation:                                         0.838
+
+2) Speed-up over no optimisation: predicted vs measured
+   Benchmark              Build             predicted   measured
+   Fibonacci (loop)       speed                 1.279      2.046
+   Fibonacci (loop)       balanced              1.279      2.050
+   Fibonacci (loop)       carbon                1.279      2.052
+   Fibonacci (loop)       carbon-datapath       1.279      2.046
+   Fibonacci (recursive)  speed                 1.000      0.989
+   Fibonacci (recursive)  balanced              1.000      0.975
+   Fibonacci (recursive)  carbon                1.000      0.986
+   Fibonacci (recursive)  carbon-datapath       1.000      0.986
+   Bubble sort            speed                 1.455      1.356
+   Bubble sort            balanced              1.417      1.352
+   Bubble sort            carbon                1.417      1.374
+   Bubble sort            carbon-datapath       1.402      1.255
+   Merge sort             speed                 1.206      0.907
+   Merge sort             balanced              1.043      1.029
+   Merge sort             carbon                1.043      1.047
+   Merge sort             carbon-datapath       1.007      0.981
+   Quick sort             speed                 1.329      1.063
+   Quick sort             balanced              1.113      1.151
+   Quick sort             carbon                1.113      1.122
+   Quick sort             carbon-datapath       1.044      1.002
+   Matrix multiply        speed                 1.233      1.176
+   Matrix multiply        balanced              1.233      1.173
+   Matrix multiply        carbon                1.233      1.147
+   Matrix multiply        carbon-datapath       1.233      1.151
+   BFS                    speed                 1.803      0.967
+   BFS                    balanced              1.105      1.139
+   BFS                    carbon                1.105      1.119
+   BFS                    carbon-datapath       1.105      1.112
+   DFS                    speed                 1.788      0.998
+   DFS                    balanced              1.104      1.087
+   DFS                    carbon                1.104      1.055
+   DFS                    carbon-datapath       1.104      1.060
+   Dijkstra               speed                 1.655      1.021
+   Dijkstra               balanced              1.112      1.096
+   Dijkstra               carbon                1.112      1.103
+   Dijkstra               carbon-datapath       1.112      1.117
+   Pearson correlation of predicted vs measured speed-up: 0.178
+   Spearman rank correlation:                            0.512
+
+3) Speed build vs carbon build (cpu profile): which one is really faster?
+   Benchmark               predicted ratio   measured ratio   agree?
+   Fibonacci (loop)                  1.000            0.997 same code
+   Fibonacci (recursive)             1.000            1.003 same code
+   Bubble sort                       1.027            0.987       NO
+   Merge sort                        1.156            0.866       NO
+   Quick sort                        1.194            0.948       NO
+   Matrix multiply                   1.000            1.026 same code
+   BFS                               1.631            0.864       NO
+   DFS                               1.620            0.946       NO
+   Dijkstra                          1.488            0.926       NO
+   (ratio > 1 means the carbon build is slower)
+   Direction predicted correctly in 0 of 6 benchmarks where the code differs

@@ -1,0 +1,9 @@
+fn add(x: int, y: int) -> int {
+  return x + y;
+}
+fn sq(x: int) -> int {
+  return x * x;
+}
+fn main() -> int {
+  return add(sq(3), add(1, 2));
+}

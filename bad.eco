@@ -1,0 +1,6 @@
+// this program has a mistake: missing ; on line 4
+fn test(n: int) -> int {
+  let a: int = 5;
+  let b: int = a + 2
+  return b;
+}

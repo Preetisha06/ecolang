@@ -1,0 +1,28 @@
+# EcoLang energy profile: CPU
+# Same as profile_datapath.txt, PLUS the cost of running any instruction
+# on a general-purpose processor (fetch, decode, register file, control).
+#
+# Energy unit = 0.1 pJ  (so K = 1e-13 joules per unit)
+#
+# Horowitz (ISSCC 2014): on a simple in-order processor the overhead of
+# executing an instruction is about 70 pJ = 700 units. It is added to
+# every category below:
+#   ALU     0.1 + 70  pJ  -> 701 units
+#   MUL     3.1 + 70  pJ  -> 731 units
+#   DIV     3.2 + 70  pJ  -> 732 units   (DIV part assumed, see datapath file)
+#   MEMORY  10  + 70  pJ  -> 800 units
+#   BRANCH  0.1 + 70  pJ  -> 701 units
+#
+# CYCLES  (uops.info measurements, Intel Skylake), same as datapath
+#
+# category   energy_units   cycles
+ALU          701            1
+MUL          731            3
+DIV          732            40
+MEMORY       800            5
+BRANCH       701            1
+
+K            0.0000000000001
+
+# grams of CO2 per kWh (India, FY 2024-25, CEA v21.0)
+GRID         710

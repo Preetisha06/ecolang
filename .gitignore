@@ -1,0 +1,6 @@
+ecoc
+lex.yy.c
+parser.tab.c
+parser.tab.h
+results/validation/c_programs/
+*.o

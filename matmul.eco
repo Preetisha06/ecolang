@@ -1,0 +1,42 @@
+// multiply two n x n matrices, stored in 1D arrays: M[i][j] is M[i * n + j]
+// returns the sum of all values in the result
+fn matmul(n: int) -> int {
+  let A: int[n * n];
+  let B: int[n * n];
+  let C: int[n * n];
+
+  let i: int = 0;
+  while (i < n) {
+    let j: int = 0;
+    while (j < n) {
+      A[i * n + j] = i + j;
+      B[i * n + j] = i - j;
+      j = j + 1;
+    }
+    i = i + 1;
+  }
+
+  i = 0;
+  while (i < n) {
+    let j: int = 0;
+    while (j < n) {
+      let s: int = 0;
+      let k: int = 0;
+      while (k < n) {
+        s = s + A[i * n + k] * B[k * n + j];
+        k = k + 1;
+      }
+      C[i * n + j] = s;
+      j = j + 1;
+    }
+    i = i + 1;
+  }
+
+  let total: int = 0;
+  i = 0;
+  while (i < n * n) {
+    total = total + C[i];
+    i = i + 1;
+  }
+  return total;
+}

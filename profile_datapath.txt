@@ -1,0 +1,28 @@
+# EcoLang energy profile: DATAPATH
+# Energy of the operation itself only (no instruction fetch/decode cost).
+# This is the view of a simple embedded core or an accelerator.
+#
+# Energy unit = 0.1 pJ  (so K = 1e-13 joules per unit)
+#
+# ENERGY  (Horowitz, "Computing's energy problem", ISSCC 2014, 45 nm, 0.9 V)
+#   ALU     32-bit integer add                    0.1 pJ  -> 1 unit
+#   MUL     32-bit integer multiply               3.1 pJ  -> 31 units
+#   DIV     NOT in Horowitz. Assumed: an iterative divider does one
+#           add/subtract per quotient bit, 32 x 0.1 pJ = 3.2 pJ -> 32 units
+#   MEMORY  64-bit read from an 8 KB cache        10 pJ   -> 100 units
+#   BRANCH  treated like an add (compare / PC update) 0.1 pJ -> 1 unit
+#
+# CYCLES  (uops.info measurements, Intel Skylake)
+#   ADD / shift 1, IMUL r64 3, IDIV r64 38-96 (we use 40), load 5, branch 1
+#
+# category   energy_units   cycles
+ALU          1              1
+MUL          31             3
+DIV          32             40
+MEMORY       100            5
+BRANCH       1              1
+
+K            0.0000000000001
+
+# grams of CO2 per kWh (India, FY 2024-25, CEA v21.0)
+GRID         710

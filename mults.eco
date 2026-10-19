@@ -1,0 +1,9 @@
+fn m(x: int) -> int {
+  let a: int = x * 0;
+  let b: int = x * 1;
+  let c: int = 5 * x;
+  let d: int = x * 1000;
+  let e: int = x * 255;
+  x = x * 3;
+  return a + b + c + d + e + x;
+}

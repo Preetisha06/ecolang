@@ -1,0 +1,15 @@
+// tests if/else, maths priority and function calls
+fn square(x: int) -> int {
+  return x * x;
+}
+
+fn main() -> int {
+  let a: int = 2 + 3 * 4;
+  let b: int = 0;
+  if (a > 10) {
+    b = square(a);
+  } else {
+    b = a - 1;
+  }
+  return b;
+}

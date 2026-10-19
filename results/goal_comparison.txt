@@ -1,0 +1,39 @@
+SPEED vs CARBON build under each energy profile
+(positive = carbon build uses that much LESS energy / is that much SLOWER than the speed build)
+
+Profile: slide
+Benchmark                  energy saved %      time cost % same code?
+Fibonacci (loop)                     0.00             0.00        yes
+Fibonacci (recursive)                0.00             0.00        yes
+Bubble sort                          0.23             1.07         NO
+Merge sort                           0.87             3.95         NO
+Quick sort                           1.66             7.67         NO
+Matrix multiply                      0.00             0.00        yes
+BFS                                  7.02            22.26         NO
+DFS                                  6.87            21.93         NO
+Dijkstra                             5.42            17.47         NO
+
+Profile: datapath
+Benchmark                  energy saved %      time cost % same code?
+Fibonacci (loop)                     0.00             0.00        yes
+Fibonacci (recursive)                0.00             0.00        yes
+Bubble sort                          0.13             3.78         NO
+Merge sort                           0.55            19.76         NO
+Quick sort                           0.97            27.34         NO
+Matrix multiply                      0.00             0.00        yes
+BFS                                  9.63            63.14         NO
+DFS                                  9.10            61.99         NO
+Dijkstra                             6.52            48.81         NO
+
+Profile: cpu
+Benchmark                  energy saved %      time cost % same code?
+Fibonacci (loop)                     0.00             0.00        yes
+Fibonacci (recursive)                0.00             0.00        yes
+Bubble sort                          1.02             2.68         NO
+Merge sort                           4.61            15.64         NO
+Quick sort                           7.51            19.39         NO
+Matrix multiply                      0.00             0.00        yes
+BFS                                 14.70            63.14         NO
+DFS                                 14.63            61.99         NO
+Dijkstra                            11.82            48.81         NO
+

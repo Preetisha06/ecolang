@@ -1,0 +1,77 @@
+// breadth-first search from node 0 on an n-node graph
+// returns the sum of all distances (number of edges) from node 0
+
+// builds the same test graph every time:
+// edge between i and j if they are neighbours, or if (i*j + i + j) % 11 == 0
+// weight of an edge is (i*j + i + j) % 9 + 1
+fn build_graph(w: int[], n: int) -> int {
+  let i: int = 0;
+  while (i < n) {
+    let j: int = 0;
+    while (j < n) {
+      let e: int = 0;
+      if (i != j) {
+        if ((i * j + i + j) % 11 == 0) {
+          e = 1;
+        }
+        if (j == i + 1) {
+          e = 1;
+        }
+        if (i == j + 1) {
+          e = 1;
+        }
+      }
+      if (e == 1) {
+        w[i * n + j] = (i * j + i + j) % 9 + 1;
+      } else {
+        w[i * n + j] = 0;
+      }
+      j = j + 1;
+    }
+    i = i + 1;
+  }
+  return 0;
+}
+
+fn bfs(n: int) -> int {
+  let w: int[n * n];
+  build_graph(w, n);
+
+  let dist: int[n];
+  let queue: int[n];
+  let i: int = 0;
+  while (i < n) {
+    dist[i] = -1;
+    i = i + 1;
+  }
+
+  let head: int = 0;
+  let tail: int = 0;
+  dist[0] = 0;
+  queue[tail] = 0;
+  tail = tail + 1;
+
+  while (head < tail) {
+    let u: int = queue[head];
+    head = head + 1;
+    let v: int = 0;
+    while (v < n) {
+      if (w[u * n + v] != 0) {
+        if (dist[v] == -1) {
+          dist[v] = dist[u] + 1;
+          queue[tail] = v;
+          tail = tail + 1;
+        }
+      }
+      v = v + 1;
+    }
+  }
+
+  let sum: int = 0;
+  i = 0;
+  while (i < n) {
+    sum = sum + dist[i];
+    i = i + 1;
+  }
+  return sum;
+}

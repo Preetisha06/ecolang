@@ -1,0 +1,25 @@
+// tricky cases for loop-invariant motion and CSE
+fn edge(n: int) -> int {
+  let a: int[10];
+  let sum: int = 0;
+  let i: int = 0;
+  let z: int = 0;
+  while (i < n) {
+    let k: int = n * 3 + z;       // invariant until z changes below
+    if (i > 5) {
+      z = z + 1;                  // z changes inside the loop: must not hoist n*3+z
+    }
+    a[i % 10] = k;
+    let x: int = a[i % 10];       // reads what was just written
+    a[i % 10] = x + 1;
+    let y: int = a[i % 10];       // must see the NEW value
+    sum = sum + y + x;
+    i = i + 1;
+  }
+  let w: int = 0;                 // a loop that never runs
+  while (w < 0) {
+    sum = sum + 100 / n;          // division must NOT be hoisted (n could be 0)
+    w = w + 1;
+  }
+  return sum;
+}

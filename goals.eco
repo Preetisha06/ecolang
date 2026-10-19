@@ -1,0 +1,14 @@
+// multiplies by different numbers: the goal decides which ones to change
+fn work(n: int) -> int {
+  let total: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    let a: int = i * 3;     // 2 cheap instructions: (i << 1) + i
+    let b: int = i * 10;    // 3 cheap instructions: (i << 3) + (i << 1)
+    let c: int = i * 7;     // 4 cheap instructions
+    let d: int = i * 15;    // 6 cheap instructions
+    total = total + a + b + c + d;
+    i = i + 1;
+  }
+  return total;
+}
