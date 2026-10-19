@@ -181,7 +181,15 @@ On the graph benchmarks the carbon build saves about 12–15% estimated energy a
 
 The **uncalibrated** model predicted the carbon builds would be 49–63% slower; the real difference was −3% to +13%. A wrong time model makes the compiler choose badly, so the cost model must be calibrated to the target CPU.
 
-### 4. Correctness testing
+### 4. Larger inputs
+
+`sweep_sizes.py` runs every benchmark at 5 input sizes (e.g. sorting 125 to 2,000 numbers, graphs of 20 to 100 nodes). The carbon build's energy saving changes by less than 1.5 percentage points between the smallest and largest input on every benchmark, so the results do not depend on the input size chosen (`results/sizes/`).
+
+```bash
+python3 sweep_sizes.py
+```
+
+### 5. Correctness testing
 
 - Every benchmark's answer matches a separate Python implementation.
 - **Random (differential) testing:** `fuzz_test.py` generates random EcoLang programs (loops, if/else, arrays, function calls, multiplication and division by many constants, negative numbers, overflow) and checks that 15 settings (every goal, several profiles, single passes switched off, and compiled C) give exactly the same answer as the unoptimised program. **360 random programs, 5,400 runs, 0 differences.**
@@ -214,7 +222,7 @@ python3 fuzz_test.py 100       # test 100 random programs
 | `*.eco` | benchmarks and test programs |
 | `micro.eco` | microbenchmarks for calibration |
 | `profile_*.txt`, `energy_profile.txt` | energy and time cost tables |
-| `run_experiments.py`, `validate_timing.py`, `calibrate.py` | experiment scripts |
+| `run_experiments.py`, `validate_timing.py`, `calibrate.py`, `sweep_sizes.py` | experiment scripts |
 | `fuzz_test.py` | random testing of the compiler |
 | `results/` | tables, CSV files and graphs |
 
