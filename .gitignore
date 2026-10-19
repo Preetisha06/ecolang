@@ -4,3 +4,4 @@ parser.tab.c
 parser.tab.h
 results/validation/c_programs/
 *.o
+lexer
