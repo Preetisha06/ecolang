@@ -9,7 +9,7 @@
 #ifndef TAC_H
 #define TAC_H
 
-#define MAX_CODE 5000
+#define MAX_CODE 50000
 #define MAX_LEN  32
 
 struct Instr {

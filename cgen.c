@@ -22,7 +22,7 @@
 #include "tac.h"
 #include "cgen.h"
 
-#define MAX_NAMES 400
+#define MAX_NAMES 5000
 
 static int is_number(const char *s)
 {
@@ -340,6 +340,10 @@ void generate_c(const char *out_file, const char *func_name)
     fprintf(f, "    for (int i = 0; i < 20; i++) {\n        a[i] = 0;\n    }\n");
     fprintf(f, "    for (int i = 1; i < argc && i <= 20; i++) {\n        a[i - 1] = atoll(argv[i]);\n    }\n");
     fprintf(f, "    long long result = run_once(a);\n\n");
+    fprintf(f, "    /* ECO_NO_TIMING=1 : only print the result (used by the random tester) */\n");
+    fprintf(f, "    if (getenv(\"ECO_NO_TIMING\") != NULL) {\n");
+    fprintf(f, "        printf(\"result %%lld\\n\", result);\n");
+    fprintf(f, "        return 0;\n    }\n\n");
     fprintf(f, "    /* find how many runs take about 0.1 seconds */\n");
     fprintf(f, "    long long reps = 1;\n");
     fprintf(f, "    while (1) {\n");

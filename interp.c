@@ -16,8 +16,8 @@
 #include "tac.h"
 #include "interp.h"
 
-#define MAX_VARS    200
-#define MAX_LABELS  2000
+#define MAX_VARS    3000
+#define MAX_LABELS  50000
 #define MAX_PENDING 100
 #define MAX_DEPTH   5000
 
@@ -354,6 +354,9 @@ void run_program(const char *func_name, long long args[], int nargs,
     for (int i = 0; i < code_count; i++) {
         if (strcmp(code[i].op, "label") == 0) {
             int n = atoi(code[i].result + 1);
+            if (n < 0 || n >= MAX_LABELS) {
+                runtime_error("too many labels in the program", code[i].result);
+            }
             label_pos[n] = i;
         }
     }

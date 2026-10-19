@@ -1,0 +1,3 @@
+random programs: 150
+runs compared with the unoptimised answer: 2250
+failures: 0

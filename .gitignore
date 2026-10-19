@@ -6,3 +6,4 @@ results/validation/c_programs/
 *.o
 lexer
 results/calibration/c_programs/
+results/fuzz/prog_*
