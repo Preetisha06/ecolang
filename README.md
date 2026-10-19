@@ -103,13 +103,15 @@ The change is kept only if `cost < 1`. `alpha` is 1 for speed, 0.5 for balanced 
 
 Instruction costs live in plain-text profile files, so they can be changed without touching the code:
 
-| Profile | Energy per instruction | Source |
+| Profile | Energy per instruction | Time per instruction |
 |---|---|---|
-| `energy_profile.txt` | original course-review table | not from a paper (kept for comparison) |
-| `profile_datapath.txt` | the operation only: ADD 0.1 pJ, MUL 3.1 pJ, 8 KB cache read 10 pJ | Horowitz, ISSCC 2014 (45 nm) |
-| `profile_cpu.txt` | the same + ~70 pJ instruction overhead per instruction | Horowitz, ISSCC 2014 |
+| `energy_profile.txt` | original course-review table (not from a paper, kept for comparison) | same table |
+| `profile_datapath.txt` | operation only: ADD 0.1 pJ, MUL 3.1 pJ, 8 KB cache read 10 pJ (Horowitz, ISSCC 2014) | Intel Skylake latencies (uops.info) |
+| `profile_cpu.txt` | the same + ~70 pJ overhead per instruction (Horowitz, ISSCC 2014) | Intel Skylake latencies (uops.info) |
+| `profile_calibrated.txt` | as `profile_cpu.txt` | **measured on our laptop** by `calibrate.py` |
+| `profile_calibrated_datapath.txt` | as `profile_datapath.txt` | **measured on our laptop** by `calibrate.py` |
 
-Cycle costs come from uops.info measurements for Intel Skylake. Division energy is not in Horowitz's table and is an assumption, marked in the file.
+Division energy is not in Horowitz's table and is an assumption, marked in the files.
 
 Carbon (g CO₂) = energy (J) / 3,600,000 × 710, using India's grid emission factor (CEA, FY 2024-25).
 
@@ -118,13 +120,17 @@ Carbon (g CO₂) = energy (J) / 3,600,000 × 710, using India's grid emission fa
 ## Experiments
 
 ```bash
-python3 run_experiments.py     # 9 benchmarks × 4 builds × 3 profiles → results/
-python3 validate_timing.py     # compile every build to C, time it on this machine → results/validation/
+python3 validate_timing.py     # compile every build to C and time it on this machine
+python3 calibrate.py           # measure time per instruction with micro.eco -> profile_calibrated*.txt
+python3 validate_timing.py     # again: also tests builds made with the calibrated model
+python3 run_experiments.py     # 9 benchmarks x 4 builds x 5 profiles -> results/
 ```
 
 Benchmarks: Fibonacci (loop and recursive), bubble sort, merge sort, quick sort, matrix multiplication, BFS, DFS and Dijkstra. Every build of every benchmark gives the same answer, and the answers were checked against separate Python implementations.
 
-### Main results (cpu profile)
+All hardware results below are from an **Intel Core Ultra 7 155U** laptop (Ubuntu on WSL, gcc -O0).
+
+### 1. Energy saved by optimisation (cpu-calibrated profile)
 
 Estimated energy saved compared with no optimisation:
 
@@ -140,25 +146,51 @@ Estimated energy saved compared with no optimisation:
 | DFS | **−1.2%** | 13.7% | 13.7% |
 | Dijkstra | 3.5% | 14.9% | 14.9% |
 
-**Key finding:** optimising only for speed can *increase* energy use (BFS, DFS), while the carbon goal avoids it.
+The optimised programs also ran **1.07–2× faster** when compiled to C and timed on the laptop.
 
-### Validation on real hardware
+Optimising only for speed can *increase* energy use (BFS, DFS): the speed goal replaces divisions with longer multiply-and-shift sequences, which are faster but run more instructions.
 
-`validate_timing.py` was run on an Intel Core Ultra 7 155U (gcc -O0, WSL):
+### 2. Calibrating the time model
 
-- all 45 compiled C programs gave the same answers as the interpreter
-- estimated cycles vs measured time: correlation 0.994
-- **but** the Skylake division cost (≈40 cycles) is too high for this CPU. Replacing division with multiply + shifts made code *slower* here, so the speed goal's choices were wrong on this machine.
+`calibrate.py` times 11 microbenchmarks (`micro.eco`) that all have the same shape and differ only in the operation, then fits the time per instruction:
 
-So the speed-versus-carbon trade-off depends on the hardware, and the cycle model must be calibrated to the target CPU (planned next).
+| | ADD | MUL | DIV | MEMORY | BRANCH |
+|---|---|---|---|---|---|
+| measured on Core Ultra 7 155U (× ADD) | 1 | 3.6 | 13.3 | 2.9 | 0.5 |
+| old model (Intel Skylake, × ADD) | 1 | 3 | 40 | 5 | 1 |
+
+Tested on the 9 benchmarks, which were **not** used for calibration:
+
+- the model ranks builds well (Spearman 0.78 for predicted vs measured speed-up)
+- it under-predicts absolute time by about 24%: real programs have stalls (for example unpredictable branches in sorting) that the microbenchmarks do not
+
+### 3. Speed goal vs carbon goal on real hardware
+
+With the calibrated model, the two goals still produce different code on 6 of 9 benchmarks:
+
+| Benchmark | carbon saves (energy, model) | carbon is slower by (time, model) | carbon is slower by (time, **measured**) |
+|---|---|---|---|
+| BFS | 14.7% | 6.2% | −2.6% |
+| DFS | 14.6% | 6.1% | −2.2% |
+| Dijkstra | 11.8% | 5.1% | 0.1% |
+| Quick sort | 7.5% | 2.9% | 10.4% |
+| Merge sort | 4.6% | 3.2% | −1.7% |
+| Bubble sort | 1.0% | 0.4% | 10.7% |
+
+On the graph benchmarks the carbon build saves about 12–15% estimated energy at no measurable time cost. On quick sort and bubble sort it is about 10% slower.
+
+The **uncalibrated** model predicted the carbon builds would be 49–63% slower; the real difference was −3% to +13%. A wrong time model makes the compiler choose badly, so the cost model must be calibrated to the target CPU.
 
 ---
 
 ## Limitations
 
-- Energy is **estimated** from published per-operation costs, not measured with a power meter (RAPL needs native Linux).
+- Energy is **estimated** from published per-operation costs, not measured with a power meter (RAPL is not available on WSL).
 - Carbon is energy × a fixed grid factor. It does not change with time or place.
-- The memory model does not simulate caches yet.
+- The time model ignores pipeline stalls and branch prediction, so it predicts ~24% too little time and cannot reliably predict differences smaller than ~5%.
+- The memory model does not simulate caches.
+- The C back end is compiled with gcc -O0 so that gcc does not add its own optimisations; real compilers would keep values in registers.
+- Each goal decision is made for one instruction at a time, so it can miss effects of later passes.
 - EcoLang is a small teaching language, so results may not carry over directly to C or Python programs.
 
 ## Files
@@ -171,8 +203,9 @@ So the speed-versus-carbon trade-off depends on the hardware, and the cycle mode
 | `interp.c`, `interp.h` | interpreter and sustainability report |
 | `cgen.c`, `cgen.h` | C back end |
 | `*.eco` | benchmarks and test programs |
-| `profile_*.txt`, `energy_profile.txt` | energy and cycle cost tables |
-| `run_experiments.py`, `validate_timing.py` | experiment scripts |
+| `micro.eco` | microbenchmarks for calibration |
+| `profile_*.txt`, `energy_profile.txt` | energy and time cost tables |
+| `run_experiments.py`, `validate_timing.py`, `calibrate.py` | experiment scripts |
 | `results/` | tables, CSV files and graphs |
 
 ## Authors
