@@ -1,0 +1,223 @@
+// micro.eco - microbenchmarks used by calibrate.py
+//
+// Every test has the SAME shape: a loop that does 8 independent operations
+//     x = m OP k;
+// and then changes m. Only OP changes between tests, so any difference in
+// time comes from the operation itself, not from the shape of the code.
+// They are run WITHOUT optimisation, so every line stays as written.
+
+// the loop on its own (baseline)
+fn m_loop(n: int) -> int {
+  let m: int = 987654321987;
+  let i: int = 0;
+  while (i < n) {
+    m = m + 1;
+    i = i + 1;
+  }
+  return m;
+}
+
+// x = m + k  (ALU)
+fn m_add(n: int) -> int {
+  let m: int = 987654321987;
+  let k: int = 7;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    x = m + k;
+    x = m + k;
+    x = m + k;
+    x = m + k;
+    x = m + k;
+    x = m + k;
+    x = m + k;
+    x = m + k;
+    m = m + 1;
+    i = i + 1;
+  }
+  return x;
+}
+
+// x = m * k  (MUL)
+fn m_mul(n: int) -> int {
+  let m: int = 987654321987;
+  let k: int = 7;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    x = m * k;
+    x = m * k;
+    x = m * k;
+    x = m * k;
+    x = m * k;
+    x = m * k;
+    x = m * k;
+    x = m * k;
+    m = m + 1;
+    i = i + 1;
+  }
+  return x;
+}
+
+// x = m / k  (DIV)
+fn m_div(n: int) -> int {
+  let m: int = 987654321987;
+  let k: int = 7;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    x = m / k;
+    x = m / k;
+    x = m / k;
+    x = m / k;
+    x = m / k;
+    x = m / k;
+    x = m / k;
+    x = m / k;
+    m = m + 1;
+    i = i + 1;
+  }
+  return x;
+}
+
+// x = m % k  (DIV)
+fn m_mod(n: int) -> int {
+  let m: int = 987654321987;
+  let k: int = 7;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    x = m % k;
+    x = m % k;
+    x = m % k;
+    x = m % k;
+    x = m % k;
+    x = m % k;
+    x = m % k;
+    x = m % k;
+    m = m + 1;
+    i = i + 1;
+  }
+  return x;
+}
+
+// x = m / constant: with --goal=speed this becomes the "magic multiply + shifts"
+// version; without optimisation it stays a real division
+fn m_divconst(n: int) -> int {
+  let m: int = 987654321987;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    x = m / 7;
+    x = m / 9;
+    x = m / 11;
+    x = m / 13;
+    x = m / 15;
+    x = m / 17;
+    x = m / 19;
+    x = m / 21;
+    m = m + 1;
+    i = i + 1;
+  }
+  return x;
+}
+
+// x = a[k]  (MEMORY: array read)
+fn m_load(n: int) -> int {
+  let a: int[8];
+  let m: int = 987654321987;
+  let k: int = 7;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    x = a[k];
+    x = a[k];
+    x = a[k];
+    x = a[k];
+    x = a[k];
+    x = a[k];
+    x = a[k];
+    x = a[k];
+    m = m + 1;
+    i = i + 1;
+  }
+  return x + m;
+}
+
+// a[k] = m  (MEMORY: array write)
+fn m_store(n: int) -> int {
+  let a: int[8];
+  let m: int = 987654321987;
+  let k: int = 7;
+  let i: int = 0;
+  while (i < n) {
+    a[k] = m;
+    a[k] = m;
+    a[k] = m;
+    a[k] = m;
+    a[k] = m;
+    a[k] = m;
+    a[k] = m;
+    a[k] = m;
+    m = m + 1;
+    i = i + 1;
+  }
+  return a[k];
+}
+
+fn id(v: int) -> int {
+  return v;
+}
+
+// x = id(m)  (MEMORY: param, call, receive, return)
+fn m_call(n: int) -> int {
+  let m: int = 987654321987;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    x = id(m);
+    x = id(m);
+    x = id(m);
+    x = id(m);
+    m = m + 1;
+    i = i + 1;
+  }
+  return x;
+}
+
+// if (m < k) { ... }  (ALU compare + BRANCH), the condition is always false
+fn m_branch(n: int) -> int {
+  let m: int = 987654321987;
+  let k: int = 7;
+  let x: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    if (m < k) {
+      x = 1;
+    }
+    if (m < k) {
+      x = 2;
+    }
+    if (m < k) {
+      x = 3;
+    }
+    if (m < k) {
+      x = 4;
+    }
+    if (m < k) {
+      x = 5;
+    }
+    if (m < k) {
+      x = 6;
+    }
+    if (m < k) {
+      x = 7;
+    }
+    if (m < k) {
+      x = 8;
+    }
+    m = m + 1;
+    i = i + 1;
+  }
+  return x;
+}

@@ -5,3 +5,4 @@ parser.tab.h
 results/validation/c_programs/
 *.o
 lexer
+results/calibration/c_programs/

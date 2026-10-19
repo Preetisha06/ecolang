@@ -1,0 +1,74 @@
+Machine: Intel(R) Core(TM) Ultra 7 155U
+Compiler: gcc -O0 -fwrapv, fastest of 5 rounds x 7 timings, 20000 loop iterations
+
+1) Time per instruction, fitted on 11 microbenchmarks
+   Kind            ns      x ALU  old (Skylake)
+   ALU          0.155       1.00              1
+   MUL          0.559       3.62              3
+   DIV          2.059      13.30             40
+   MEMORY       0.447       2.89              5
+   BRANCH       0.072       0.47              1
+
+2) How well the fit explains each microbenchmark
+   Microbenchmark      measured ns    fitted ns    error
+   loop only                 14850        18369    23.7%
+   add                       88931        67886   -23.7%
+   multiply                 124158       132640     6.8%
+   divide                   373626       372505    -0.3%
+   remainder                370068       372505     0.7%
+   divide by const          373870       372505    -0.4%
+   magic multiply           197409       175967   -10.9%
+   array read                92698       114603    23.6%
+   array write               89966        89845    -0.1%
+   function call            258148       173699   -32.7%
+   if statement              68282        54701   -19.9%
+
+3) TEST on the real benchmarks (NOT used for fitting)
+   Benchmark              Build             measured ns    predicted    error
+   Fibonacci (loop)       none                      269          112   -58.3%
+   Fibonacci (loop)       speed                     134           84   -37.2%
+   Fibonacci (loop)       balanced                  135           84   -37.6%
+   Fibonacci (loop)       carbon                    134           84   -37.2%
+   Fibonacci (loop)       carbon-datapath           135           84   -37.8%
+   Fibonacci (recursive)  none                    29518        18778   -36.4%
+   Fibonacci (recursive)  speed                   28344        18778   -33.7%
+   Fibonacci (recursive)  balanced                28394        18778   -33.9%
+   Fibonacci (recursive)  carbon                  30441        18778   -38.3%
+   Fibonacci (recursive)  carbon-datapath         30361        18778   -38.1%
+   Bubble sort            none                    84668        68988   -18.5%
+   Bubble sort            speed                   54806        45425   -17.1%
+   Bubble sort            balanced                62294        45603   -26.8%
+   Bubble sort            carbon                  64100        45603   -28.9%
+   Bubble sort            carbon-datapath         69322        46358   -33.1%
+   Merge sort             none                    47041        34699   -26.2%
+   Merge sort             speed                   41033        31421   -23.4%
+   Merge sort             balanced                39655        32383   -18.3%
+   Merge sort             carbon                  38281        32383   -15.4%
+   Merge sort             carbon-datapath         44833        34270   -23.6%
+   Quick sort             none                    23862        19445   -18.5%
+   Quick sort             speed                   20554        16467   -19.9%
+   Quick sort             balanced                21035        16913   -19.6%
+   Quick sort             carbon                  21249        16913   -20.4%
+   Quick sort             carbon-datapath         23203        18800   -19.0%
+   Matrix multiply        none                    34299        33431    -2.5%
+   Matrix multiply        speed                   28557        25293   -11.4%
+   Matrix multiply        balanced                28554        25293   -11.4%
+   Matrix multiply        carbon                  30605        25293   -17.4%
+   Matrix multiply        carbon-datapath         28395        25293   -10.9%
+   BFS                    none                    36834        31587   -14.2%
+   BFS                    speed                   33064        24501   -25.9%
+   BFS                    balanced                32632        25917   -20.6%
+   BFS                    carbon                  32642        25917   -20.6%
+   BFS                    carbon-datapath         33143        25917   -21.8%
+   DFS                    none                    37161        31878   -14.2%
+   DFS                    speed                   34723        24819   -28.5%
+   DFS                    balanced                31777        26236   -17.4%
+   DFS                    carbon                  31987        26236   -18.0%
+   DFS                    carbon-datapath         32140        26236   -18.4%
+   Dijkstra               none                    44581        38382   -13.9%
+   Dijkstra               speed                   40649        30090   -26.0%
+   Dijkstra               balanced                41455        31507   -24.0%
+   Dijkstra               carbon                  40344        31507   -21.9%
+   Dijkstra               carbon-datapath         40776        31507   -22.7%
+   Prediction error on unseen programs: median 21.8%, mean 24.0% (45 builds)
+   Average signed error -24.0% (negative = model predicts too little time)

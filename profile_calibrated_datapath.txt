@@ -1,0 +1,19 @@
+# EcoLang energy profile: CALIBRATED  (written by calibrate.py - do not edit by hand)
+# Machine: Intel(R) Core(TM) Ultra 7 155U
+#
+# ENERGY: same as profile_datapath.txt (Horowitz, ISSCC 2014, operation only),
+#         energy unit = 0.1 pJ
+# TIME:   measured on this machine with micro.eco (gcc -O0), see
+#         results/calibration/calibration.txt; time unit = 0.01 ns
+#
+# category   energy_units   time_units
+ALU          1              15
+MUL          31             56
+DIV          32             206
+MEMORY       100            45
+BRANCH       1              7
+
+K            0.0000000000001
+
+# grams of CO2 per kWh (India, FY 2024-25, CEA v21.0)
+GRID         710

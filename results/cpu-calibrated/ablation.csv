@@ -1,0 +1,64 @@
+benchmark,setting,energy_units,cycles,energy_saving_pct,lost_saving_pct
+Fibonacci (loop),all passes,446735,8167,22.02,0.0
+Fibonacci (loop),without CF,446735,8167,22.02,0.0
+Fibonacci (loop),without CP,572915,10867,-0.0,22.02
+Fibonacci (loop),without SR,446735,8167,22.02,0.0
+Fibonacci (loop),without DCE,509825,9517,11.01,11.01
+Fibonacci (loop),without CSE,446735,8167,22.02,0.0
+Fibonacci (loop),without LICM,446735,8167,22.02,0.0
+Fibonacci (recursive),all passes,47266262,1876932,-0.0,0.0
+Fibonacci (recursive),without CF,47266262,1876932,-0.0,0.0
+Fibonacci (recursive),without CP,47266262,1876932,-0.0,0.0
+Fibonacci (recursive),without SR,47266262,1876932,-0.0,0.0
+Fibonacci (recursive),without DCE,47266262,1876932,-0.0,0.0
+Fibonacci (recursive),without CSE,47266262,1876932,-0.0,0.0
+Fibonacci (recursive),without LICM,47266262,1876932,-0.0,0.0
+Bubble sort,all passes,150535902,4526943,34.92,0.0
+Bubble sort,without CF,150535902,4526943,34.92,0.0
+Bubble sort,without CP,202109437,5917248,12.62,22.3
+Bubble sort,without SR,150535902,4526943,34.92,0.0
+Bubble sort,without DCE,186581322,5298243,19.34,15.58
+Bubble sort,without CSE,181408470,5761023,21.57,13.35
+Bubble sort,without LICM,178713999,5129898,22.74,12.18
+Merge sort,all passes,101764240,3213940,9.34,0.0
+Merge sort,without CF,101764240,3213940,9.34,0.0
+Merge sort,without CP,112254004,3438400,-0.0,9.34
+Merge sort,without SR,101764240,3213940,9.34,0.0
+Merge sort,without DCE,101764240,3213940,9.34,0.0
+Merge sort,without CSE,101764240,3213940,9.34,0.0
+Merge sort,without LICM,101764240,3213940,9.34,0.0
+Quick sort,all passes,47675406,1682154,15.29,0.0
+Quick sort,without CF,47675406,1682154,15.29,0.0
+Quick sort,without CP,56046748,1861284,0.41,14.87
+Quick sort,without SR,47675406,1682154,15.29,0.0
+Quick sort,without DCE,51422952,1762344,8.63,6.66
+Quick sort,without CSE,49781037,1792509,11.55,3.74
+Quick sort,without LICM,47675406,1682154,15.29,0.0
+Matrix multiply,all passes,71172412,2509843,21.61,0.0
+Matrix multiply,without CF,71172412,2509843,21.61,0.0
+Matrix multiply,without CP,84100254,2786473,7.37,14.24
+Matrix multiply,without SR,71172412,2509843,21.61,0.0
+Matrix multiply,without DCE,71734614,2521873,20.99,0.62
+Matrix multiply,without CSE,71469494,2517895,21.28,0.33
+Matrix multiply,without LICM,77854352,3022503,14.25,7.36
+BFS,all passes,80500646,2557887,13.82,0.0
+BFS,without CF,80500646,2557887,13.82,0.0
+BFS,without CP,85842266,2672187,8.11,5.72
+BFS,without SR,80500646,2557887,13.82,0.0
+BFS,without DCE,80500646,2557887,13.82,0.0
+BFS,without CSE,80502446,2560347,13.82,0.0
+BFS,without LICM,88073546,3005667,5.72,8.11
+DFS,all passes,80908903,2590115,13.65,0.0
+DFS,without CF,80908903,2590115,13.65,0.0
+DFS,without CP,86124343,2701715,8.08,5.57
+DFS,without SR,80908903,2590115,13.65,0.0
+DFS,without DCE,80908903,2590115,13.65,0.0
+DFS,without CSE,80910703,2592575,13.65,0.0
+DFS,without LICM,88481803,3037895,5.57,8.08
+Dijkstra,all passes,103512379,3109392,14.89,0.0
+Dijkstra,without CF,103512379,3109392,14.89,0.0
+Dijkstra,without CP,114025977,3334362,6.24,8.64
+Dijkstra,without SR,103512379,3109392,14.89,0.0
+Dijkstra,without DCE,106145335,3165732,12.72,2.16
+Dijkstra,without CSE,103645315,3120792,14.78,0.11
+Dijkstra,without LICM,111085279,3557172,8.66,6.23

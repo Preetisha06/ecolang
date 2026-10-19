@@ -37,3 +37,27 @@ BFS                                 14.70            63.14         NO
 DFS                                 14.63            61.99         NO
 Dijkstra                            11.82            48.81         NO
 
+Profile: cpu-calibrated
+Benchmark                  energy saved %      time cost % same code?
+Fibonacci (loop)                     0.00             0.00        yes
+Fibonacci (recursive)                0.00             0.00        yes
+Bubble sort                          1.02             0.42         NO
+Merge sort                           4.61             3.19         NO
+Quick sort                           7.51             2.87         NO
+Matrix multiply                      0.00             0.00        yes
+BFS                                 14.70             6.21         NO
+DFS                                 14.63             6.12         NO
+Dijkstra                            11.82             5.05         NO
+
+Profile: datapath-calibrated
+Benchmark                  energy saved %      time cost % same code?
+Fibonacci (loop)                     0.00             0.00        yes
+Fibonacci (recursive)                0.00             0.00        yes
+Bubble sort                          0.13             2.03         NO
+Merge sort                           0.55             9.03         NO
+Quick sort                           0.97            14.00         NO
+Matrix multiply                      0.00             0.00        yes
+BFS                                  9.63             6.21         NO
+DFS                                  9.10             6.12         NO
+Dijkstra                             6.52             5.05         NO
+

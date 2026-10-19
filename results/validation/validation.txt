@@ -1,61 +1,83 @@
 Machine: Intel(R) Core(TM) Ultra 7 155U
 Compiler: gcc -O0 -fwrapv, fastest of 5 rounds x 7 timings
 
-1) All benchmarks and builds together (45 runs)
-   Pearson correlation of log(estimated cycles) vs log(measured time): 0.994
-   Spearman rank correlation:                                         0.838
+1) All benchmarks and builds together (63 runs)
+   Pearson correlation of log(estimated cycles) vs log(measured time): 0.872
+   Spearman rank correlation:                                         0.639
 
 2) Speed-up over no optimisation: predicted vs measured
    Benchmark              Build             predicted   measured
-   Fibonacci (loop)       speed                 1.279      2.046
-   Fibonacci (loop)       balanced              1.279      2.050
-   Fibonacci (loop)       carbon                1.279      2.052
-   Fibonacci (loop)       carbon-datapath       1.279      2.046
-   Fibonacci (recursive)  speed                 1.000      0.989
-   Fibonacci (recursive)  balanced              1.000      0.975
-   Fibonacci (recursive)  carbon                1.000      0.986
-   Fibonacci (recursive)  carbon-datapath       1.000      0.986
-   Bubble sort            speed                 1.455      1.356
-   Bubble sort            balanced              1.417      1.352
-   Bubble sort            carbon                1.417      1.374
-   Bubble sort            carbon-datapath       1.402      1.255
-   Merge sort             speed                 1.206      0.907
-   Merge sort             balanced              1.043      1.029
-   Merge sort             carbon                1.043      1.047
-   Merge sort             carbon-datapath       1.007      0.981
-   Quick sort             speed                 1.329      1.063
-   Quick sort             balanced              1.113      1.151
-   Quick sort             carbon                1.113      1.122
-   Quick sort             carbon-datapath       1.044      1.002
-   Matrix multiply        speed                 1.233      1.176
-   Matrix multiply        balanced              1.233      1.173
-   Matrix multiply        carbon                1.233      1.147
-   Matrix multiply        carbon-datapath       1.233      1.151
-   BFS                    speed                 1.803      0.967
-   BFS                    balanced              1.105      1.139
-   BFS                    carbon                1.105      1.119
-   BFS                    carbon-datapath       1.105      1.112
-   DFS                    speed                 1.788      0.998
-   DFS                    balanced              1.104      1.087
-   DFS                    carbon                1.104      1.055
-   DFS                    carbon-datapath       1.104      1.060
-   Dijkstra               speed                 1.655      1.021
-   Dijkstra               balanced              1.112      1.096
-   Dijkstra               carbon                1.112      1.103
-   Dijkstra               carbon-datapath       1.112      1.117
-   Pearson correlation of predicted vs measured speed-up: 0.178
-   Spearman rank correlation:                            0.512
+   Fibonacci (loop)       speed                 1.279      1.994
+   Fibonacci (loop)       balanced              1.279      1.985
+   Fibonacci (loop)       carbon                1.279      1.996
+   Fibonacci (loop)       carbon-datapath       1.279      1.978
+   Fibonacci (recursive)  speed                 1.000      1.104
+   Fibonacci (recursive)  balanced              1.000      1.090
+   Fibonacci (recursive)  carbon                1.000      1.078
+   Fibonacci (recursive)  carbon-datapath       1.000      1.083
+   Bubble sort            speed                 1.455      1.402
+   Bubble sort            balanced              1.417      1.316
+   Bubble sort            carbon                1.417      1.301
+   Bubble sort            carbon-datapath       1.402      1.243
+   Merge sort             speed                 1.206      1.075
+   Merge sort             balanced              1.043      1.080
+   Merge sort             carbon                1.043      1.103
+   Merge sort             carbon-datapath       1.007      1.052
+   Quick sort             speed                 1.329      1.268
+   Quick sort             balanced              1.113      1.124
+   Quick sort             carbon                1.113      1.121
+   Quick sort             carbon-datapath       1.044      1.083
+   Matrix multiply        speed                 1.233      1.227
+   Matrix multiply        balanced              1.233      1.234
+   Matrix multiply        carbon                1.233      1.227
+   Matrix multiply        carbon-datapath       1.233      1.221
+   BFS                    speed                 1.803      1.091
+   BFS                    balanced              1.105      1.084
+   BFS                    carbon                1.105      1.115
+   BFS                    carbon-datapath       1.105      1.118
+   DFS                    speed                 1.788      1.123
+   DFS                    balanced              1.104      1.235
+   DFS                    carbon                1.104      1.212
+   DFS                    carbon-datapath       1.104      1.220
+   Dijkstra               speed                 1.655      1.086
+   Dijkstra               balanced              1.112      1.112
+   Dijkstra               carbon                1.112      1.117
+   Dijkstra               carbon-datapath       1.112      1.167
+   Pearson correlation of predicted vs measured speed-up: 0.195
+   Spearman rank correlation:                            0.603
 
-3) Speed build vs carbon build (cpu profile): which one is really faster?
+3) Speed build vs carbon build (cpu profile, Skylake cycle costs): which one is really faster?
    Benchmark               predicted ratio   measured ratio   agree?
-   Fibonacci (loop)                  1.000            0.997 same code
-   Fibonacci (recursive)             1.000            1.003 same code
-   Bubble sort                       1.027            0.987       NO
-   Merge sort                        1.156            0.866       NO
-   Quick sort                        1.194            0.948       NO
-   Matrix multiply                   1.000            1.026 same code
-   BFS                               1.631            0.864       NO
-   DFS                               1.620            0.946       NO
-   Dijkstra                          1.488            0.926       NO
+   Fibonacci (loop)                  1.000            0.999 same code
+   Fibonacci (recursive)             1.000            1.024 same code
+   Bubble sort                       1.027            1.078      yes
+   Merge sort                        1.156            0.974       NO
+   Quick sort                        1.194            1.131      yes
+   Matrix multiply                   1.000            1.000 same code
+   BFS                               1.631            0.979       NO
+   DFS                               1.620            0.926       NO
+   Dijkstra                          1.488            0.972       NO
    (ratio > 1 means the carbon build is slower)
-   Direction predicted correctly in 0 of 6 benchmarks where the code differs
+   Direction predicted correctly in 2 of 6 benchmarks where the code differs
+
+4) Speed build vs carbon build made with the CALIBRATED model
+   Benchmark               predicted ratio   measured ratio   agree?
+   Fibonacci (loop)                  1.000            1.012 same code
+   Fibonacci (recursive)             1.000            1.009 same code
+   Bubble sort                       1.004            1.107      yes
+   Merge sort                        1.032            0.983       NO
+   Quick sort                        1.029            1.104      yes
+   Matrix multiply                   1.000            0.984 same code
+   BFS                               1.062            0.974       NO
+   DFS                               1.061            0.978       NO
+   Dijkstra                          1.050            1.001      yes
+   (ratio > 1 means the carbon build is slower)
+   Direction predicted correctly in 3 of 6 benchmarks where the code differs
+
+5) Calibrated model: predicted vs measured time for every build
+   median error 21.5%, mean error 24.1% over 63 builds
+   (the calibrated costs come from micro.eco only, so these benchmarks
+    are unseen programs for the model)
+   Pearson correlation of predicted vs measured speed-up: 0.463
+   Spearman rank correlation:                            0.781
+

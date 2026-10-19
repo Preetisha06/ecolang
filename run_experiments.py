@@ -7,6 +7,7 @@
 #     slide     energy_profile.txt     (the original Review-1 table, not from a paper)
 #     datapath  profile_datapath.txt   (Horowitz ISSCC 2014 operation energy + Skylake cycles)
 #     cpu       profile_cpu.txt        (same + 70 pJ instruction overhead per instruction)
+#     cpu-calibrated, datapath-calibrated   (after calibrate.py: time costs measured on this computer)
 #
 # For each profile it creates a folder results/<profile> with:
 #     main.csv       every benchmark x every build (RQ1, RQ3, RQ4)
@@ -62,6 +63,12 @@ PROFILES = [
     ("datapath", "profile_datapath.txt"),
     ("cpu",      "profile_cpu.txt"),
 ]
+
+# time costs measured on this computer by calibrate.py (if it has been run)
+if os.path.exists("profile_calibrated.txt"):
+    PROFILES.append(("cpu-calibrated", "profile_calibrated.txt"))
+if os.path.exists("profile_calibrated_datapath.txt"):
+    PROFILES.append(("datapath-calibrated", "profile_calibrated_datapath.txt"))
 
 # the profile being run right now (set in main)
 PROFILE_FILE = "energy_profile.txt"

@@ -11,9 +11,15 @@
 #     python3 validate_timing.py
 #
 # Results go to results/validation/:
-#     timing.csv           every measurement
+#     timing.csv           every measurement (with instruction counts)
 #     validation.txt       correlations and the speed-vs-carbon check
-#     fig5_validation.png  predicted vs measured speed-up
+#     fig5_validation.png  predicted vs measured speed-up (Skylake cycle costs)
+#     fig6_calibrated.png  the same with the calibrated costs (after calibrate.py)
+#
+# Full procedure:
+#     python3 validate_timing.py     time all builds
+#     python3 calibrate.py           measure time costs with micro.eco -> profile_calibrated.txt
+#     python3 validate_timing.py     again: now also tests builds made with the calibrated model
 #
 # Tip: plug in your laptop and close other programs while it runs.
 
@@ -44,6 +50,14 @@ BUILDS = [
     ("carbon-datapath", ["--profile=profile_datapath.txt", "--goal=carbon"]),
 ]
 
+# after calibrate.py has run, also test the decisions of the calibrated model
+CAL_FILE = "profile_calibrated.txt"
+if os.path.exists(CAL_FILE):
+    BUILDS.append(("speed-cal",  ["--profile=" + CAL_FILE, "--goal=speed"]))
+    BUILDS.append(("carbon-cal", ["--profile=" + CAL_FILE, "--goal=carbon"]))
+
+CATS = ["alu", "mul", "div", "memory", "branch"]
+
 FOLDER = os.path.join("results", "validation")
 BUILD_DIR = os.path.join(FOLDER, "c_programs")
 
@@ -72,8 +86,34 @@ def estimate(file_name, function, size, options, c_file):
     command = ["./ecoc", file_name, function, str(size), "--csv", "--emit-c=" + c_file] + options
     stdout, stderr, code = run(command)
     parts = stdout.strip().split("\n")[-1].split(",")
-    # columns: see run_experiments.py (result is column 5, cycles 12, energy 13)
-    return {"result": parts[5], "cycles": int(parts[12]), "energy": int(parts[13])}
+    # columns: see run_experiments.py (result 5, counts 7-11, cycles 12, energy 13)
+    counts = []
+    for i in range(7, 12):
+        counts.append(int(parts[i]))
+    return {"result": parts[5], "cycles": int(parts[12]), "energy": int(parts[13]), "counts": counts}
+
+
+def calibrated_costs():
+    """ns per instruction of each kind, read from profile_calibrated.txt (or None)."""
+    if not os.path.exists(CAL_FILE):
+        return None
+    names = ["ALU", "MUL", "DIV", "MEMORY", "BRANCH"]
+    cost = [0.0] * 5
+    unit = 0.01
+    f = open(CAL_FILE)
+    for line in f:
+        words = line.split()
+        if len(words) >= 3 and words[0] in names:
+            cost[names.index(words[0])] = int(words[2]) * unit
+    f.close()
+    return cost
+
+
+def predicted_ns(row, cost):
+    total = 0.0
+    for i in range(5):
+        total = total + row["counts"][i] * cost[i]
+    return total
 
 
 def compile_c(c_file, exe_file):
@@ -164,9 +204,12 @@ def main():
             exe_file = os.path.join(BUILD_DIR, base)
             est = estimate(file_name, function, size, options, c_file)
             compile_c(c_file, exe_file)
-            rows.append({"benchmark": name, "build": build, "result": est["result"],
-                         "est_cycles": est["cycles"], "est_energy": est["energy"],
-                         "exe": exe_file, "size": size, "times": []})
+            row = {"benchmark": name, "build": build, "result": est["result"],
+                   "est_cycles": est["cycles"], "est_energy": est["energy"],
+                   "counts": est["counts"], "exe": exe_file, "size": size, "times": []}
+            for i in range(5):
+                row[CATS[i]] = est["counts"][i]
+            rows.append(row)
 
     # time in rounds: in each round every program runs once, so slow moments
     # of the laptop affect all builds equally
@@ -194,7 +237,8 @@ def main():
 
     # save every measurement
     f = open(os.path.join(FOLDER, "timing.csv"), "w")
-    header = ["benchmark", "build", "result", "est_cycles", "est_energy", "time_ns", "min_ns", "max_ns"]
+    header = ["benchmark", "build", "result", "alu", "mul", "div", "memory", "branch",
+              "est_cycles", "est_energy", "time_ns", "min_ns", "max_ns"]
     f.write(",".join(header) + "\n")
     for row in rows:
         values = []
@@ -232,7 +276,7 @@ def main():
             if row["benchmark"] == name and row["build"] == "none":
                 base = row
         for row in rows:
-            if row["benchmark"] == name and row["build"] != "none":
+            if row["benchmark"] == name and row["build"] != "none" and not row["build"].endswith("-cal"):
                 p = base["est_cycles"] / row["est_cycles"]
                 m = base["time_ns"] / row["time_ns"]
                 row["pred_speedup"] = p
@@ -245,22 +289,82 @@ def main():
     lines.append("")
 
     # (3) the key claim: when EcoLang says speed build is faster than carbon build, is it really?
+    lines.append("3) Speed build vs carbon build (cpu profile, Skylake cycle costs): which one is really faster?")
+    compare_goals(rows, "speed", "carbon", None, lines)
+    lines.append("")
+
+    cost = calibrated_costs()
+    if cost is not None and has_build(rows, "speed-cal"):
+        lines.append("4) Speed build vs carbon build made with the CALIBRATED model")
+        compare_goals(rows, "speed-cal", "carbon-cal", cost, lines)
+        lines.append("")
+
+        lines.append("5) Calibrated model: predicted vs measured time for every build")
+        errors = []
+        pred = []
+        meas = []
+        for b in range(len(BENCHMARKS)):
+            name = BENCHMARKS[b][0]
+            base = None
+            for row in rows:
+                if row["benchmark"] == name and row["build"] == "none":
+                    base = row
+            for row in rows:
+                if row["benchmark"] == name:
+                    e = 100.0 * abs(predicted_ns(row, cost) - row["time_ns"]) / row["time_ns"]
+                    errors.append(e)
+                    if row["build"] != "none":
+                        row["pred_speedup_cal"] = predicted_ns(base, cost) / predicted_ns(row, cost)
+                        row["meas_speedup"] = base["time_ns"] / row["time_ns"]
+                        pred.append(row["pred_speedup_cal"])
+                        meas.append(row["meas_speedup"])
+        errors.sort()
+        lines.append("   median error %.1f%%, mean error %.1f%% over %d builds" %
+                     (errors[len(errors) // 2], mean(errors), len(errors)))
+        lines.append("   (the calibrated costs come from micro.eco only, so these benchmarks")
+        lines.append("    are unseen programs for the model)")
+        lines.append("   Pearson correlation of predicted vs measured speed-up: %.3f" % pearson(pred, meas))
+        lines.append("   Spearman rank correlation:                            %.3f" % spearman(pred, meas))
+        lines.append("")
+
+    f = open(os.path.join(FOLDER, "validation.txt"), "w")
+    f.write("\n".join(lines) + "\n")
+    f.close()
+    print("")
+    print("\n".join(lines))
+
+    make_graph(rows)
+    if cost is not None and has_build(rows, "speed-cal"):
+        make_graph_calibrated(rows)
+
+
+def has_build(rows, build):
+    for row in rows:
+        if row["build"] == build:
+            return True
+    return False
+
+
+def compare_goals(rows, speed_build, carbon_build, cost, lines):
+    """Is the build EcoLang thinks is faster really faster? cost=None uses est_cycles."""
     agree = 0
     total = 0
-    lines.append("3) Speed build vs carbon build (cpu profile): which one is really faster?")
     lines.append("   %-22s %16s %16s %8s" % ("Benchmark", "predicted ratio", "measured ratio", "agree?"))
     for b in range(len(BENCHMARKS)):
         name = BENCHMARKS[b][0]
         s = None
         c = None
         for row in rows:
-            if row["benchmark"] == name and row["build"] == "speed":
+            if row["benchmark"] == name and row["build"] == speed_build:
                 s = row
-            if row["benchmark"] == name and row["build"] == "carbon":
+            if row["benchmark"] == name and row["build"] == carbon_build:
                 c = row
-        p = c["est_cycles"] / s["est_cycles"]
+        if cost is None:
+            p = c["est_cycles"] / s["est_cycles"]
+        else:
+            p = predicted_ns(c, cost) / predicted_ns(s, cost)
         m = c["time_ns"] / s["time_ns"]
-        if abs(p - 1.0) < 0.01:
+        if s["counts"] == c["counts"]:
             verdict = "same code"
         else:
             total = total + 1
@@ -273,13 +377,54 @@ def main():
     lines.append("   (ratio > 1 means the carbon build is slower)")
     lines.append("   Direction predicted correctly in %d of %d benchmarks where the code differs" % (agree, total))
 
-    f = open(os.path.join(FOLDER, "validation.txt"), "w")
-    f.write("\n".join(lines) + "\n")
-    f.close()
-    print("")
-    print("\n".join(lines))
 
-    make_graph(rows)
+def make_graph_calibrated(rows):
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        return
+
+    COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
+    MARKERS = ["o", "s", "^", "D", "v", "P"]
+    TEXT = "#2b2b29"
+    MUTED = "#6b6b66"
+    GRID = "#e4e3df"
+    builds = ["speed", "balanced", "carbon", "carbon-datapath", "speed-cal", "carbon-cal"]
+
+    fig, ax = plt.subplots(figsize=(6.5, 5.2))
+    low = 10.0
+    high = 0.0
+    for k in range(len(builds)):
+        xs = []
+        ys = []
+        for row in rows:
+            if row["build"] == builds[k] and "pred_speedup_cal" in row:
+                xs.append(row["pred_speedup_cal"])
+                ys.append(row["meas_speedup"])
+                low = min(low, row["pred_speedup_cal"], row["meas_speedup"])
+                high = max(high, row["pred_speedup_cal"], row["meas_speedup"])
+        ax.scatter(xs, ys, s=46, color=COLORS[k], marker=MARKERS[k], label=builds[k],
+                   edgecolors="white", linewidths=1.2, zorder=3)
+    pad = 0.05
+    ax.plot([low - pad, high + pad], [low - pad, high + pad], color=MUTED, linewidth=1,
+            linestyle="--", zorder=1, label="perfect prediction")
+    ax.set_xlabel("Predicted speed-up (calibrated model)", color=TEXT)
+    ax.set_ylabel("Measured speed-up (real time, gcc -O0)", color=TEXT)
+    ax.set_title("Calibrated time model vs. real hardware", color=TEXT, loc="left", fontsize=12)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_color(GRID)
+    ax.spines["bottom"].set_color(GRID)
+    ax.tick_params(colors=MUTED, labelsize=9)
+    ax.grid(True, color=GRID, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.legend(frameon=False, fontsize=9, labelcolor=TEXT)
+    fig.tight_layout()
+    fig.savefig(os.path.join(FOLDER, "fig6_calibrated.png"), dpi=200)
+    plt.close(fig)
+    print("Graph saved: results/validation/fig6_calibrated.png")
 
 
 def make_graph(rows):
@@ -305,7 +450,7 @@ def make_graph(rows):
         xs = []
         ys = []
         for row in rows:
-            if row["build"] == builds[k]:
+            if row["build"] == builds[k] and "pred_speedup" in row:
                 xs.append(row["pred_speedup"])
                 ys.append(row["meas_speedup"])
                 low = min(low, row["pred_speedup"], row["meas_speedup"])
