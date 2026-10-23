@@ -58,7 +58,11 @@ void print_code(void)
         char *r  = code[i].result;
 
         if (strcmp(op, "func") == 0) {
-            printf("\nfunc %s:\n", a1);
+            if (strlen(a2) > 0) {
+                printf("\nfunc %s:   (@%s)\n", a1, a2);
+            } else {
+                printf("\nfunc %s:\n", a1);
+            }
         } else if (strcmp(op, "param_in") == 0) {
             printf("%3d:    receive %s\n", i, a1);
         } else if (strcmp(op, "label") == 0) {

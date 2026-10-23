@@ -1,0 +1,28 @@
+// per-function goals: each function can ask for its own goal
+// hash() runs in the hot loop, so it is marked @speed
+// checksum() runs once at the end, so it is marked @carbon
+@speed
+fn hash(x: int) -> int {
+  return (x * 10 + x / 7) % 13;
+}
+
+@carbon
+fn checksum(n: int) -> int {
+  let s: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    s = s + (i * 10 + i / 7) % 13;
+    i = i + 1;
+  }
+  return s;
+}
+
+fn run(n: int) -> int {
+  let total: int = 0;
+  let i: int = 0;
+  while (i < n) {
+    total = total + hash(i);
+    i = i + 1;
+  }
+  return total + checksum(n);
+}

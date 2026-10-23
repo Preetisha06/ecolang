@@ -8,5 +8,6 @@ void optimize_program(int do_cf, int do_cp, int do_dce, int do_sr,
                       int do_cse, int do_licm, double alpha);
 void print_opt_summary(void);
 void reset_opt_stats(void);
+void print_decision_log(void);
 
 #endif

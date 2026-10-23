@@ -29,7 +29,51 @@ int changes_cse = 0;
 int changes_licm = 0;
 
 /* goal: alpha = 1 speed, 0.5 balanced, 0 carbon */
-double goal_alpha = 1.0;
+double goal_alpha = 1.0;        /* alpha of the function being optimised now */
+double program_alpha = 1.0;     /* alpha from the command line (--goal / --alpha) */
+char current_func[MAX_LEN] = "";
+
+/* ================= decision log (--explain) =================
+   Every time the goal is asked "should I make this swap?", the question
+   and the answer are written down here, so the compiler can explain itself. */
+#define MAX_LOG 500
+struct Decision {
+    char func[MAX_LEN];
+    char before[140];
+    char after[140];
+    double t_hat;
+    double e_hat;
+    double alpha;
+    double cost;
+    int accepted;
+};
+struct Decision decision_log[MAX_LOG];
+int log_count = 0;
+
+/* the same question can be asked again in a later round: log it only once */
+static void log_decision(const char *before, const char *after, double t_hat,
+                         double e_hat, double cost, int accepted)
+{
+    for (int k = 0; k < log_count; k++) {
+        if (strcmp(decision_log[k].func, current_func) == 0 &&
+            strcmp(decision_log[k].before, before) == 0) {
+            return;
+        }
+    }
+    if (log_count >= MAX_LOG) {
+        return;
+    }
+    struct Decision *d = &decision_log[log_count];
+    strcpy(d->func, current_func);
+    snprintf(d->before, sizeof(d->before), "%s", before);
+    snprintf(d->after, sizeof(d->after), "%s", after);
+    d->t_hat = t_hat;
+    d->e_hat = e_hat;
+    d->alpha = goal_alpha;
+    d->cost = cost;
+    d->accepted = accepted;
+    log_count = log_count + 1;
+}
 int decomposed = 0;          /* multiplies turned into shifts + adds */
 int div_rewritten = 0;       /* divisions turned into multiply + shifts */
 
@@ -39,7 +83,8 @@ int div_rewritten = 0;       /* divisions turned into multiply + shifts */
        E^ = new energy / old energy
        cost = alpha * T^ + (1 - alpha) * E^
    The change is kept only if cost < 1 (cheaper than before for this goal). */
-static int goal_accepts(long long old_e, long long old_t, long long new_e, long long new_t)
+static int goal_accepts(long long old_e, long long old_t, long long new_e, long long new_t,
+                        const char *before, const char *after)
 {
     if (old_e <= 0 || old_t <= 0) {
         return 0;
@@ -47,10 +92,18 @@ static int goal_accepts(long long old_e, long long old_t, long long new_e, long 
     double t_hat = (double) new_t / (double) old_t;
     double e_hat = (double) new_e / (double) old_e;
     double cost = goal_alpha * t_hat + (1.0 - goal_alpha) * e_hat;
+    int accepted = 0;
     if (cost < 1.0) {
-        return 1;
+        accepted = 1;
     }
-    return 0;
+    log_decision(before, after, t_hat, e_hat, cost, accepted);
+    return accepted;
+}
+
+/* instruction i as text, e.g. "t3 = i * 10" (for the decision log) */
+static void describe(int i, char *buf)
+{
+    snprintf(buf, 140, "%s = %s %s %s", code[i].result, code[i].arg1, code[i].op, code[i].arg2);
 }
 
 /* ================= small helpers ================= */
@@ -390,7 +443,11 @@ static int decompose_multiply(int i, const char *var, long long c)
     long long old_t = cycle_cost[CAT_MUL];
     long long new_e = k * energy_cost[CAT_ALU];
     long long new_t = k * cycle_cost[CAT_ALU];
-    if (!goal_accepts(old_e, old_t, new_e, new_t)) {
+    char before[140];
+    char after[140];
+    describe(i, before);
+    snprintf(after, sizeof(after), "%d shifts/adds", k);
+    if (!goal_accepts(old_e, old_t, new_e, new_t, before, after)) {
         return -1;   /* goal says no: keep the multiply */
     }
 
@@ -514,7 +571,11 @@ static int rewrite_division(int i, const char *x, long long d, int is_mod)
     /* ask the goal: is this better than 1 DIV? */
     long long new_e = mul * energy_cost[CAT_MUL] + alu * energy_cost[CAT_ALU];
     long long new_t = mul * cycle_cost[CAT_MUL] + alu * cycle_cost[CAT_ALU];
-    if (!goal_accepts(energy_cost[CAT_DIV], cycle_cost[CAT_DIV], new_e, new_t)) {
+    char before[140];
+    char after[140];
+    describe(i, before);
+    snprintf(after, sizeof(after), "magic multiply (%d MUL + %d ALU)", mul, alu);
+    if (!goal_accepts(energy_cost[CAT_DIV], cycle_cost[CAT_DIV], new_e, new_t, before, after)) {
         return -1;
     }
 
@@ -631,14 +692,18 @@ static int strength_reduction(int start, int *end_ptr)
             long long alu_e = energy_cost[CAT_ALU];
             long long alu_t = cycle_cost[CAT_ALU];
 
-            if (c == 0 && goal_accepts(mul_e, mul_t, alu_e, alu_t)) {          /* x * 0 -> 0 */
+            char before[140];
+            describe(i, before);
+            if (c == 0 && goal_accepts(mul_e, mul_t, alu_e, alu_t, before, "0")) {   /* x * 0 -> 0 */
                 make_copy(i, "0", code[i].result);
                 changed = changed + 1;
-            } else if (c == 1 && goal_accepts(mul_e, mul_t, alu_e, alu_t)) {   /* x * 1 -> x */
+            } else if (c == 1 && goal_accepts(mul_e, mul_t, alu_e, alu_t, before, var)) {   /* x * 1 -> x */
                 make_copy(i, var, code[i].result);
                 changed = changed + 1;
             } else if (power_of_two(c) > 0) {                                  /* x * 8 -> x << 3 */
-                if (goal_accepts(mul_e, mul_t, alu_e, alu_t)) {
+                char after[140];
+                snprintf(after, sizeof(after), "%s << %d", var, power_of_two(c));
+                if (goal_accepts(mul_e, mul_t, alu_e, alu_t, before, after)) {
                     char shift[MAX_LEN];
                     sprintf(shift, "%d", power_of_two(c));
                     strcpy(code[i].op, "<<");
@@ -923,6 +988,21 @@ static int loop_invariant_motion(int start, int end)
 
 /* ================= running the passes ================= */
 
+/* alpha for the function that starts at i: its own @goal, or the program's */
+static double function_alpha(int i)
+{
+    if (strcmp(code[i].arg2, "speed") == 0) {
+        return 1.0;
+    }
+    if (strcmp(code[i].arg2, "balanced") == 0) {
+        return 0.5;
+    }
+    if (strcmp(code[i].arg2, "carbon") == 0) {
+        return 0.0;
+    }
+    return program_alpha;
+}
+
 /* run one pass on every function, then remove the nops */
 static int apply_pass(int which)
 {
@@ -931,6 +1011,9 @@ static int apply_pass(int which)
     while (i < code_count) {
         if (strcmp(code[i].op, "func") == 0) {
             int e = func_end(i);
+            /* a function marked @speed / @balanced / @carbon uses its own goal */
+            goal_alpha = function_alpha(i);
+            strcpy(current_func, code[i].arg1);
             if (which == 1) changed = changed + constant_folding(i, e);
             if (which == 2) changed = changed + propagation(i, e);
             if (which == 3) changed = changed + merge_temps(i, e);
@@ -960,11 +1043,13 @@ void reset_opt_stats(void)
     changes_licm = 0;
     decomposed = 0;
     div_rewritten = 0;
+    log_count = 0;
 }
 
 void optimize_program(int do_cf, int do_cp, int do_dce, int do_sr,
                       int do_cse, int do_licm, double alpha)
 {
+    program_alpha = alpha;
     goal_alpha = alpha;
     for (int round = 0; round < 20; round++) {
         int total = 0;
@@ -1024,7 +1109,12 @@ void print_opt_summary(void)
             kept = kept + 1;
         }
     }
-    printf("goal alpha            : %.2f\n", goal_alpha);
+    printf("goal alpha            : %.2f\n", program_alpha);
+    for (int i = 0; i < code_count; i++) {
+        if (strcmp(code[i].op, "func") == 0 && strlen(code[i].arg2) > 0) {
+            printf("   function %-10s: @%s (alpha = %.2f)\n", code[i].arg1, code[i].arg2, function_alpha(i));
+        }
+    }
     printf("multiplies -> shifts+adds : %d done, %d kept as multiply\n", decomposed, kept);
 
     int kept_div = 0;
@@ -1034,4 +1124,36 @@ void print_opt_summary(void)
         }
     }
     printf("divisions  -> magic multiply  : %d done, %d kept as division\n", div_rewritten, kept_div);
+}
+
+/* --explain: every swap the goal was asked about, and why it said yes or no */
+void print_decision_log(void)
+{
+    printf("\n===== Why: goal decisions (cost = alpha*T + (1-alpha)*E, keep if cost < 1) =====\n");
+    if (log_count == 0) {
+        printf("no speed-vs-energy swaps were possible in this program\n");
+        return;
+    }
+    printf("%-12s %-22s %-30s %5s %6s %6s %6s  %s\n",
+           "function", "instruction", "swap to", "alpha", "T", "E", "cost", "decision");
+    for (int k = 0; k < log_count; k++) {
+        struct Decision *d = &decision_log[k];
+        const char *verdict = "REJECTED";
+        if (d->accepted) {
+            verdict = "ACCEPTED";
+        }
+        char reason[64];
+        if (d->t_hat < 1.0 && d->e_hat < 1.0) {
+            strcpy(reason, "cheaper in time and energy");
+        } else if (d->t_hat < 1.0) {
+            strcpy(reason, "faster, but more energy");
+        } else if (d->e_hat < 1.0) {
+            strcpy(reason, "less energy, but slower");
+        } else {
+            strcpy(reason, "worse in both");
+        }
+        printf("%-12s %-22s %-30s %5.2f %6.2f %6.2f %6.2f  %s (%s)\n",
+               d->func, d->before, d->after, d->alpha, d->t_hat, d->e_hat, d->cost,
+               verdict, reason);
+    }
 }

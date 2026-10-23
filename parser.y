@@ -17,6 +17,7 @@ extern int yylineno;
 extern FILE *yyin;
 
 int arg_count = 0;   /* counts arguments in a function call */
+int has_goal_tags = 0;   /* 1 if any function is marked @speed / @balanced / @carbon */
 %}
 
 %union {
@@ -25,11 +26,12 @@ int arg_count = 0;   /* counts arguments in a function call */
 }
 
 %token FN LET WHILE IF ELSE RETURN INT ARROW
+%token AT_SPEED AT_BALANCED AT_CARBON
 %token EQ NE LE GE LT GT
 %token <num> NUMBER
 %token <name> ID
 
-%type <name> expr
+%type <name> expr goal_tag
 %type <num> while_start if_head
 
 /* operator priority: lower line = higher priority */
@@ -50,11 +52,20 @@ program
     | program function
     ;
 
-/* fn name(params) -> int { ... } */
+/* fn name(params) -> int { ... }
+   optionally with its own goal in front:   @carbon fn name(...) -> int { ... }
+   the goal is stored in the "func" instruction, so the optimiser can read it */
 function
-    : FN ID { emit("func", $2, "", ""); }
+    : goal_tag FN ID { emit("func", $3, $1, ""); }
       '(' params ')' ARROW INT block
       { emit("end", "", "", ""); }
+    ;
+
+goal_tag
+    : /* empty: use the goal from the command line */   { $$ = ""; }
+    | AT_SPEED                                          { $$ = "speed";    has_goal_tags = 1; }
+    | AT_BALANCED                                       { $$ = "balanced"; has_goal_tags = 1; }
+    | AT_CARBON                                         { $$ = "carbon";   has_goal_tags = 1; }
     ;
 
 params
@@ -264,6 +275,8 @@ void yyerror(const char *msg)
      --quiet                               -> only print the report
      --csv                                 -> print one line of numbers (for scripts)
      --emit-c=out.c                        -> also write the code as a C program
+     --explain                             -> show every speed-vs-energy swap and why
+                                              the goal accepted or rejected it
      --max-slowdown=5                      -> speed budget: least energy while at most
                                               5% slower than the speed build          */
 int main(int argc, char *argv[])
@@ -277,10 +290,11 @@ int main(int argc, char *argv[])
     int licm = 1;
     int quiet = 0;
     double alpha = 1.0;
-    char goal_text[64] = "none (no optimisation)";
+    char goal_text[128] = "none (no optimisation)";
     const char *profile_file = "energy_profile.txt";
     const char *c_file = NULL;
     int use_budget = 0;
+    int explain = 0;
     double max_slowdown = 0.0;
 
     const char *file_name = NULL;
@@ -329,6 +343,8 @@ int main(int argc, char *argv[])
             cse = 0;
         } else if (strcmp(argv[i], "--no-licm") == 0) {
             licm = 0;
+        } else if (strcmp(argv[i], "--explain") == 0) {
+            explain = 1;
         } else if (strcmp(argv[i], "--quiet") == 0) {
             quiet = 1;
         } else if (strcmp(argv[i], "--csv") == 0) {
@@ -374,6 +390,17 @@ int main(int argc, char *argv[])
 
     source_name = file_name;
 
+    /* functions marked @speed / @balanced / @carbon: optimise even without --goal
+       (functions without a mark then use the speed goal, like a normal compiler) */
+    if (has_goal_tags) {
+        if (do_opt) {
+            strcat(goal_text, " + per-function goals");
+        } else {
+            do_opt = 1;
+            strcpy(goal_text, "per-function goals (others: speed)");
+        }
+    }
+
     /* which passes ran, for the report */
     char passes[64] = "none";
     if (do_opt) {
@@ -383,6 +410,9 @@ int main(int argc, char *argv[])
             alpha = choose_alpha_for_budget(max_slowdown, cf, cp, dce, sr, cse, licm,
                                             func_name, args, nargs, !csv_mode);
             sprintf(goal_text, "budget %.1f%% (alpha = %.2f)", max_slowdown, alpha);
+            if (has_goal_tags) {
+                strcat(goal_text, " + per-function goals");
+            }
         }
         optimize_program(cf, cp, dce, sr, cse, licm, alpha);
         clock_t t1 = clock();
@@ -404,6 +434,9 @@ int main(int argc, char *argv[])
             printf("\n===== Optimised three-address code =====\n");
             print_code();
             print_opt_summary();
+        }
+        if (explain && !csv_mode) {
+            print_decision_log();
         }
     }
 

@@ -38,6 +38,11 @@ int is_all_digits(const char *s)
 "return"            { return RETURN; }
 "int"               { return INT; }
 
+"@speed"            { return AT_SPEED; }      /* per-function goals */
+"@balanced"         { return AT_BALANCED; }
+"@carbon"           { return AT_CARBON; }
+"@"[a-zA-Z_]*       { printf("line %d: unknown goal '%s' (use @speed, @balanced or @carbon)\n", yylineno, yytext); exit(1); }
+
 [0-9]+              { yylval.num = atoll(yytext); return NUMBER; }
 [a-zA-Z_][a-zA-Z0-9_]*  {
                         /* names like t1, t25 are used by the compiler for temporaries */

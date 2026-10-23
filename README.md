@@ -7,7 +7,10 @@ EcoLang is a small programming language and its compiler. The compiler does more
 --goal=carbon     make the program use less energy
 --goal=balanced   a mix of both
 --max-slowdown=5  speed budget: least energy while at most 5% slower than the speed build
+--explain         show every speed-vs-energy swap and why it was accepted or rejected
 ```
+
+Functions can also carry their own goal in the source code (`@speed`, `@balanced`, `@carbon`).
 
 Every run ends with a sustainability report:
 
@@ -61,6 +64,23 @@ fn fib(n: int) -> int {
 - 64-bit integers, `let`, `while`, `if / else`, functions and recursion
 - arrays: `let a: int[n];`, `a[i] = x;`, `fn f(a: int[], n: int)`
 - operators: `+ - * / %`, comparisons, negative numbers
+- per-function goals: `@speed`, `@balanced` or `@carbon` in front of `fn`
+
+### Per-function goals
+
+A function can ask for its own goal. Functions without a mark use the goal from the command line (speed if none is given):
+
+```
+@speed
+fn hash(x: int) -> int {          // runs in the hot loop: keep it fast
+  return (x * 10 + x / 7) % 13;
+}
+
+@carbon
+fn checksum(n: int) -> int { ... } // runs once: save energy
+```
+
+The mark is a new token in the lexer and an optional `goal_tag` rule in the grammar; it is stored in the function's `func` instruction, and the optimiser uses that function's alpha while it works on it. In `mixed.eco`, `hash` and `checksum` contain the same arithmetic: the `@speed` function turns `x * 10`, `x / 7` and `% 13` into shifts and magic multiplies, the `@carbon` function keeps them.
 
 ---
 
@@ -109,6 +129,20 @@ Instead of choosing alpha, the user can give a time limit:
 ```
 
 means "use as little energy as possible, but be at most 5% slower (estimated time) than the speed build". The compiler (`budget.c`) optimises the program with alpha = 1.00, 0.99, ... 0.00, runs each build quietly, and keeps the build with the least energy whose time is within the limit. It prints a table of the builds it found and which one it chose. If two alphas give exactly the same code, the second one is not run again.
+
+### Explaining the decisions (`--explain`)
+
+```bash
+./ecoc mixed.eco run 1000 --profile=profile_calibrated.txt --explain
+```
+
+prints every swap the goal was asked about, with its time ratio T, energy ratio E, cost and decision:
+
+```
+function     instruction            swap to                        alpha      T      E   cost  decision
+hash         t2 = x / 7             magic multiply (1 MUL + 3 ALU)  1.00   0.49   3.87   0.49  ACCEPTED (faster, but more energy)
+checksum     t7 = i / 7             magic multiply (1 MUL + 3 ALU)  0.00   0.49   3.87   3.87  REJECTED (faster, but more energy)
+```
 
 ### Energy model
 
@@ -249,7 +283,7 @@ python3 fuzz_test.py 100       # test 100 random programs
 | `budget.c`, `budget.h` | speed-budget search (`--max-slowdown`) |
 | `interp.c`, `interp.h` | interpreter and sustainability report |
 | `cgen.c`, `cgen.h` | C back end |
-| `*.eco` | benchmarks and test programs |
+| `*.eco` | benchmarks and test programs (`mixed.eco`: per-function goals) |
 | `micro.eco` | microbenchmarks for calibration |
 | `profile_*.txt`, `energy_profile.txt` | energy and time cost tables |
 | `run_experiments.py`, `validate_timing.py`, `calibrate.py`, `sweep_sizes.py`, `budget_sweep.py` | experiment scripts |
