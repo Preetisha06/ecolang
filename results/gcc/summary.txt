@@ -3,26 +3,26 @@ EcoLang vs gcc - measured on this computer
 TABLE A - executed x86 instructions (program only), as % of gcc -O0 (lower = less work, less energy)
 Benchmark                   gcc-O0      gcc-O1      gcc-O2      gcc-O3   Eco-speed  Eco-carbon   Eco-bud5%     EcoS+O2     EcoC+O2
 Fibonacci (loop)             100.0        26.2        25.8        25.8        74.3        74.3        74.3        25.8        25.8
-Fibonacci (recursive)        100.0        33.7        19.3        19.5       100.0       100.0       100.0        19.3        19.3
-Bubble sort                  100.0        11.8        13.6        13.6        68.2        67.7        67.7        13.7        13.6
-Merge sort                   100.0        25.2        21.4        20.7        95.1        91.3        91.3        21.9        21.4
-Quick sort                   100.0        20.4        18.7        18.7        90.1        85.2        85.2        19.1        18.7
-Matrix multiply              100.0        10.8        11.6        11.4        76.8        76.8        76.8        11.6        11.6
-BFS                          100.0        23.1        21.8        21.8        96.6        83.3        84.4        24.7        21.3
-DFS                          100.0        25.2        22.1        22.1        96.7        83.5        84.6        25.0        21.6
-Dijkstra                     100.0        22.0        21.0        21.0        94.1        83.6        84.5        23.3        20.6
+Fibonacci (recursive)        100.0        34.8        18.6        18.8       100.0       100.0       100.0        18.6        18.6
+Bubble sort                  100.0        11.7        13.6        13.6        68.2        67.7        67.7        13.6        13.6
+Merge sort                   100.0        24.3        21.4        19.4        95.1        91.3        91.3        21.9        21.4
+Quick sort                   100.0        20.5        18.9        18.8        90.1        85.2        85.2        19.4        18.9
+Matrix multiply              100.0        11.0        11.7        11.4        76.8        76.8        76.8        11.7        11.7
+BFS                          100.0        25.0        21.8        21.8        96.6        83.3        84.4        25.3        21.9
+DFS                          100.0        26.6        21.5        21.5        96.7        83.5        84.6        25.0        21.6
+Dijkstra                     100.0        23.5        20.5        20.5        94.1        83.6        84.5        23.3        20.6
 
 TABLE B - real run time, as % of gcc -O0 (lower = faster)
 Benchmark                   gcc-O0      gcc-O1      gcc-O2      gcc-O3   Eco-speed  Eco-carbon   Eco-bud5%     EcoS+O2     EcoC+O2
-Fibonacci (loop)             100.0         0.1         0.0         0.0        89.9        89.6        89.7         0.0         0.0
-Fibonacci (recursive)        100.0        37.7         9.5        10.0        96.2        96.3        99.0         9.7         9.8
-Bubble sort                  100.0        16.1        63.1        61.8        72.0        72.4        73.5        65.1        62.1
-Merge sort                   100.0        19.5        20.3        19.3        96.9        97.9        99.6        22.4        20.3
-Quick sort                   100.0        19.1        22.0        18.6        81.1        89.6        89.1        23.9        22.2
-Matrix multiply              100.0        13.0        11.2         7.3        77.8        76.6        73.9        10.8        10.1
-BFS                          100.0        14.8        12.9        12.0        91.2        84.2        82.7        14.4        11.5
-DFS                          100.0        15.4        14.8        13.6        93.2        87.0        88.5        15.8        13.9
-Dijkstra                     100.0        15.8        16.5        17.4        92.4        91.0        89.9        19.4        15.2
+Fibonacci (loop)             100.0         0.1         0.0         0.0        90.0        90.2        91.9         0.0         0.0
+Fibonacci (recursive)        100.0        32.0         7.7         8.1        86.5        85.1       127.8         7.9         8.0
+Bubble sort                  100.0        11.9        65.8        68.7        74.4        72.9        73.5        71.4        68.1
+Merge sort                   100.0        20.4        22.5        16.9        96.3        94.3        93.8        25.4        24.7
+Quick sort                   100.0        22.1        20.3        20.4        79.5        91.6        93.5        23.3        21.0
+Matrix multiply              100.0         7.2         7.0         7.6        77.6        78.3        77.5         6.8         6.8
+BFS                          100.0        25.9        14.7        15.1       106.5        89.2        93.8        18.6        15.1
+DFS                          100.0        17.0        20.5        10.8       124.7        74.1       105.4        24.7        23.7
+Dijkstra                     100.0        15.1        18.9        20.6       104.4       102.0        97.1        22.1        15.8
 
 TABLE C - what the carbon goal changes (instructions, % change; negative = fewer)
 Benchmark                EcoLang carbon vs speed     carbon+gcc -O2 vs gcc -O2
@@ -32,9 +32,9 @@ Bubble sort                                -0.8%                          0.0%
 Merge sort                                 -4.0%                          0.0%
 Quick sort                                 -5.4%                          0.0%
 Matrix multiply                             0.0%                          0.0%
-BFS                                       -13.8%                         -2.3%
-DFS                                       -13.6%                         -2.3%
-Dijkstra                                  -11.1%                         -1.9%
+BFS                                       -13.8%                          0.5%
+DFS                                       -13.6%                          0.5%
+Dijkstra                                  -11.1%                          0.4%
 
 Builds: gcc -O0, gcc -O1, gcc -O2, gcc -O3, EcoLang speed, EcoLang carbon, EcoLang budget 5%, EcoLang speed + gcc -O2, EcoLang carbon + gcc -O2
 gcc -O1/-O2/-O3 and '+ gcc -O2' builds use -DECO_PLAIN (gcc sees all constants).

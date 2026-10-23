@@ -258,17 +258,18 @@ python3 budget_sweep.py
 
 Real x86 instructions, carbon goal vs speed goal (negative = fewer):
 
-| Benchmark | EcoLang carbon vs EcoLang speed | EcoLang carbon + gcc -O2 vs gcc -O2 alone | model's estimate (energy) |
-|---|---|---|---|
-| BFS | **−13.8%** | −2.3% | −14.7% |
-| DFS | **−13.6%** | −2.3% | −14.6% |
-| Dijkstra | **−11.1%** | −1.9% | −11.8% |
-| Quick sort | −5.4% | 0.0% | −7.5% |
-| Merge sort | −4.0% | 0.0% | −4.6% |
+| Benchmark | EcoLang carbon vs EcoLang speed | model's estimate (energy) |
+|---|---|---|
+| BFS | **−13.8%** | −14.7% |
+| DFS | **−13.6%** | −14.6% |
+| Dijkstra | **−11.1%** | −11.8% |
+| Quick sort | −5.4% | −7.5% |
+| Merge sort | −4.0% | −4.6% |
 
-- The real instruction counts agree closely with EcoLang's energy model, so the "speed build does more work" result is not just a property of the model.
+- The real instruction counts agree closely with EcoLang's energy model, so the "speed build does more work" result is not just a property of the model. (Instruction counts are the same on every machine for the same gcc version.)
 - gcc -O2 is much faster than EcoLang alone (registers, inlining, 30 years of engineering): EcoLang does not try to beat it on speed. gcc has no energy goal, and it always turns division by a constant into a longer multiply sequence.
-- Running EcoLang's carbon goal **before** gcc -O2 never adds instructions and saves up to 2.3% on the graph benchmarks; EcoLang's speed goal before gcc -O2 adds instructions.
+- Running EcoLang's carbon goal before gcc -O2 gives about the same instruction count as gcc -O2 alone (within ±2.5%, depending on the gcc version: −2.3% with one gcc, +0.5% with another).
+- Measured run times (Table B in `summary.txt`) are noisy for programs this short (microseconds), especially under WSL; the instruction counts are the reliable measure.
 
 ```bash
 sudo apt install valgrind      # once
