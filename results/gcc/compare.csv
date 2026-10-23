@@ -1,0 +1,82 @@
+benchmark,build,result,instructions,time_ns
+Fibonacci (loop),gcc -O0,2880067194370816120,2109,207.9
+Fibonacci (loop),gcc -O1,2880067194370816120,552,0.2
+Fibonacci (loop),gcc -O2,2880067194370816120,545,0.0
+Fibonacci (loop),gcc -O3,2880067194370816120,545,0.0
+Fibonacci (loop),EcoLang speed,2880067194370816120,1567,186.9
+Fibonacci (loop),EcoLang carbon,2880067194370816120,1567,186.3
+Fibonacci (loop),EcoLang budget 5%,2880067194370816120,1567,186.5
+Fibonacci (loop),EcoLang speed + gcc -O2,2880067194370816120,545,0.0
+Fibonacci (loop),EcoLang carbon + gcc -O2,2880067194370816120,545,0.0
+Fibonacci (recursive),gcc -O0,2584,384595,40207.6
+Fibonacci (recursive),gcc -O1,2584,129598,15146.3
+Fibonacci (recursive),gcc -O2,2584,74044,3815.8
+Fibonacci (recursive),gcc -O3,2584,74836,4012.7
+Fibonacci (recursive),EcoLang speed,2584,384595,38686.5
+Fibonacci (recursive),EcoLang carbon,2584,384595,38736.8
+Fibonacci (recursive),EcoLang budget 5%,2584,384595,39812.6
+Fibonacci (recursive),EcoLang speed + gcc -O2,2584,74044,3889.5
+Fibonacci (recursive),EcoLang carbon + gcc -O2,2584,74044,3938.8
+Bubble sort,gcc -O0,12782567,1522104,114664.8
+Bubble sort,gcc -O1,12782567,178987,18510.7
+Bubble sort,gcc -O2,12782567,207418,72309.4
+Bubble sort,gcc -O3,12782567,207418,70865.6
+Bubble sort,EcoLang speed,12782567,1038565,82530.7
+Bubble sort,EcoLang carbon,12782567,1030754,82971.6
+Bubble sort,EcoLang budget 5%,12782567,1030754,84262.9
+Bubble sort,EcoLang speed + gcc -O2,12782567,208019,74601.2
+Bubble sort,EcoLang carbon + gcc -O2,12782567,207418,71155.7
+Merge sort,gcc -O0,84058693,734131,59288.4
+Merge sort,gcc -O1,84058693,184972,11542.0
+Merge sort,gcc -O2,84058693,157408,12047.8
+Merge sort,gcc -O3,84058693,152041,11456.6
+Merge sort,EcoLang speed,84058693,698274,57435.3
+Merge sort,EcoLang carbon,84058693,670276,58019.5
+Merge sort,EcoLang budget 5%,84058693,670276,59046.0
+Merge sort,EcoLang speed + gcc -O2,84058693,160415,13284.3
+Merge sort,EcoLang carbon + gcc -O2,84058693,157408,12063.7
+Quick sort,gcc -O0,84058693,401848,34884.9
+Quick sort,gcc -O1,84058693,82174,6660.9
+Quick sort,gcc -O2,84058693,75314,7672.0
+Quick sort,gcc -O3,84058693,75310,6492.8
+Quick sort,EcoLang speed,84058693,361897,28299.0
+Quick sort,EcoLang carbon,84058693,342385,31239.9
+Quick sort,EcoLang budget 5%,84058693,342385,31098.4
+Quick sort,EcoLang speed + gcc -O2,84058693,76822,8337.5
+Quick sort,EcoLang carbon + gcc -O2,84058693,75314,7740.6
+Matrix multiply,gcc -O0,266000,639527,49069.5
+Matrix multiply,gcc -O1,266000,69355,6399.9
+Matrix multiply,gcc -O2,266000,74288,5484.3
+Matrix multiply,gcc -O3,266000,73025,3600.1
+Matrix multiply,EcoLang speed,266000,490899,38179.6
+Matrix multiply,EcoLang carbon,266000,490899,37581.7
+Matrix multiply,EcoLang budget 5%,266000,490899,36252.2
+Matrix multiply,EcoLang speed + gcc -O2,266000,74288,5297.9
+Matrix multiply,EcoLang carbon + gcc -O2,266000,74288,4972.5
+BFS,gcc -O0,160,582212,50834.7
+BFS,gcc -O1,160,134267,7502.5
+BFS,gcc -O2,160,126923,6537.0
+BFS,gcc -O3,160,126751,6097.5
+BFS,EcoLang speed,160,562286,46381.6
+BFS,EcoLang carbon,160,484880,42789.7
+BFS,EcoLang budget 5%,160,491481,42033.2
+BFS,EcoLang speed + gcc -O2,160,143750,7296.3
+BFS,EcoLang carbon + gcc -O2,160,124033,5849.1
+DFS,gcc -O0,70210,586830,50016.7
+DFS,gcc -O1,70210,148145,7704.7
+DFS,gcc -O2,70210,129735,7388.2
+DFS,gcc -O3,70210,129712,6794.6
+DFS,EcoLang speed,70210,567451,46608.8
+DFS,EcoLang carbon,70210,490045,43535.9
+DFS,EcoLang budget 5%,70210,496646,44267.5
+DFS,EcoLang speed + gcc -O2,70210,146498,7880.9
+DFS,EcoLang carbon + gcc -O2,70210,126781,6935.2
+Dijkstra,gcc -O0,499,739285,60300.7
+Dijkstra,gcc -O1,499,162755,9547.9
+Dijkstra,gcc -O2,499,155401,9921.1
+Dijkstra,gcc -O3,499,155147,10493.6
+Dijkstra,EcoLang speed,499,695607,55727.1
+Dijkstra,EcoLang carbon,499,618201,54864.9
+Dijkstra,EcoLang budget 5%,499,624802,54196.1
+Dijkstra,EcoLang speed + gcc -O2,499,172164,11678.6
+Dijkstra,EcoLang carbon + gcc -O2,499,152447,9160.3

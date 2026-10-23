@@ -277,9 +277,16 @@ void generate_c(const char *out_file, const char *func_name)
        version into ~15 instructions, which is unfair, so on x86-64 we write
        the single instruction directly.                                      */
     fprintf(f, "/* a value gcc cannot see through, so it cannot optimise the operation */\n");
+    fprintf(f, "/* compile with -DECO_PLAIN to let gcc see the numbers and optimise them itself\n");
+    fprintf(f, "   (used to compare EcoLang with gcc's own -O1/-O2/-O3, see compare_gcc.py) */\n");
+    fprintf(f, "#ifdef ECO_PLAIN\n");
+    fprintf(f, "#define OPAQUE_A(v) (v)\n");
+    fprintf(f, "#define OPAQUE_B(v) (v)\n");
+    fprintf(f, "#else\n");
     fprintf(f, "static volatile long long opaque_a_, opaque_b_;\n");
     fprintf(f, "#define OPAQUE_A(v) (opaque_a_ = (v), opaque_a_)\n");
-    fprintf(f, "#define OPAQUE_B(v) (opaque_b_ = (v), opaque_b_)\n\n");
+    fprintf(f, "#define OPAQUE_B(v) (opaque_b_ = (v), opaque_b_)\n");
+    fprintf(f, "#endif\n\n");
     fprintf(f, "#if defined(__x86_64__)\n");
     fprintf(f, "#define MULHS(a, b) ({ long long lo_ = (a), hi_; \\\n");
     fprintf(f, "    __asm__(\"imulq %%2\" : \"=d\"(hi_), \"+a\"(lo_) : \"r\"((long long) (b)) : \"cc\"); hi_; })\n");
@@ -320,7 +327,7 @@ void generate_c(const char *out_file, const char *func_name)
 
     /* main: run the function, then time it */
     int n = params_of(func_name);
-    fprintf(f, "static long long run_once(long long *a)\n{\n");
+    fprintf(f, "__attribute__((noinline)) static long long run_once(long long *a)\n{\n");
     fprintf(f, "    heap_used = 0;\n    arr_count = 1;\n    psp = 0;\n");
     fprintf(f, "    return f_%s(", func_name);
     for (int k = 0; k < n; k++) {

@@ -252,7 +252,30 @@ Energy saved is relative to the speed build. Every budget gives the same answer 
 python3 budget_sweep.py
 ```
 
-### 6. Correctness testing
+### 6. EcoLang compared with gcc
+
+`compare_gcc.py` turns every benchmark into C and compiles it with gcc -O0/-O1/-O2/-O3, with EcoLang's goals then gcc -O0, and with EcoLang then gcc -O2. It **measures** the real x86 instructions each program executes (valgrind, program only, start-up not counted) and its real run time (`results/gcc/`). Every build gives the same answer.
+
+Real x86 instructions, carbon goal vs speed goal (negative = fewer):
+
+| Benchmark | EcoLang carbon vs EcoLang speed | EcoLang carbon + gcc -O2 vs gcc -O2 alone | model's estimate (energy) |
+|---|---|---|---|
+| BFS | **−13.8%** | −2.3% | −14.7% |
+| DFS | **−13.6%** | −2.3% | −14.6% |
+| Dijkstra | **−11.1%** | −1.9% | −11.8% |
+| Quick sort | −5.4% | 0.0% | −7.5% |
+| Merge sort | −4.0% | 0.0% | −4.6% |
+
+- The real instruction counts agree closely with EcoLang's energy model, so the "speed build does more work" result is not just a property of the model.
+- gcc -O2 is much faster than EcoLang alone (registers, inlining, 30 years of engineering): EcoLang does not try to beat it on speed. gcc has no energy goal, and it always turns division by a constant into a longer multiply sequence.
+- Running EcoLang's carbon goal **before** gcc -O2 never adds instructions and saves up to 2.3% on the graph benchmarks; EcoLang's speed goal before gcc -O2 adds instructions.
+
+```bash
+sudo apt install valgrind      # once
+python3 compare_gcc.py         # about 5 minutes
+```
+
+### 7. Correctness testing
 
 - Every benchmark's answer matches a separate Python implementation.
 - **Random (differential) testing:** `fuzz_test.py` generates random EcoLang programs (loops, if/else, arrays, function calls, multiplication and division by many constants, negative numbers, overflow) and checks that 15 settings (every goal, several profiles, single passes switched off, and compiled C) give exactly the same answer as the unoptimised program. **360 random programs, 5,400 runs, 0 differences.**
@@ -286,7 +309,7 @@ python3 fuzz_test.py 100       # test 100 random programs
 | `*.eco` | benchmarks and test programs (`mixed.eco`: per-function goals) |
 | `micro.eco` | microbenchmarks for calibration |
 | `profile_*.txt`, `energy_profile.txt` | energy and time cost tables |
-| `run_experiments.py`, `validate_timing.py`, `calibrate.py`, `sweep_sizes.py`, `budget_sweep.py` | experiment scripts |
+| `run_experiments.py`, `validate_timing.py`, `calibrate.py`, `sweep_sizes.py`, `budget_sweep.py`, `compare_gcc.py` | experiment scripts |
 | `fuzz_test.py` | random testing of the compiler |
 | `results/` | tables, CSV files and graphs |
 
