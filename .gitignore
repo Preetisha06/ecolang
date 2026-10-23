@@ -7,3 +7,7 @@ results/validation/c_programs/
 lexer
 results/calibration/c_programs/
 results/fuzz/prog_*
+demo
+out.c
+err.eco
+demo.c
