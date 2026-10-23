@@ -347,8 +347,8 @@ long long run_function(const char *name, long long args[], int nargs)
 
 /* ---------- report ---------- */
 
-void run_program(const char *func_name, long long args[], int nargs,
-                 const char *passes, const char *goal)
+/* runs the program once from a clean start and fills cat_count[] */
+long long execute_program(const char *func_name, long long args[], int nargs)
 {
     /* remember where every label is, so jumps are fast */
     for (int i = 0; i < code_count; i++) {
@@ -365,7 +365,34 @@ void run_program(const char *func_name, long long args[], int nargs,
         cat_count[i] = 0;
     }
 
-    long long answer = run_function(func_name, args, nargs);
+    /* empty array memory, so every run starts the same */
+    heap_used = 0;
+    arr_count = 1;
+    call_depth = 0;
+
+    return run_function(func_name, args, nargs);
+}
+
+/* runs the program quietly and gives back its answer, est. time and energy
+   (used by the speed-budget search, which tries many builds) */
+void measure_program(const char *func_name, long long args[], int nargs,
+                     long long *answer, long long *cycles, long long *energy)
+{
+    *answer = execute_program(func_name, args, nargs);
+    long long total_cycles = 0;
+    long long total_energy = 0;
+    for (int i = 1; i < NUM_CATS; i++) {
+        total_cycles = total_cycles + cat_count[i] * cycle_cost[i];
+        total_energy = total_energy + cat_count[i] * energy_cost[i];
+    }
+    *cycles = total_cycles;
+    *energy = total_energy;
+}
+
+void run_program(const char *func_name, long long args[], int nargs,
+                 const char *passes, const char *goal)
+{
+    long long answer = execute_program(func_name, args, nargs);
 
     long long total_instr = 0;
     long long total_energy = 0;

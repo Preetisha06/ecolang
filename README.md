@@ -6,6 +6,7 @@ EcoLang is a small programming language and its compiler. The compiler does more
 --goal=speed      make the program fast
 --goal=carbon     make the program use less energy
 --goal=balanced   a mix of both
+--max-slowdown=5  speed budget: least energy while at most 5% slower than the speed build
 ```
 
 Every run ends with a sustainability report:
@@ -99,6 +100,16 @@ cost = alpha × (new time / old time) + (1 − alpha) × (new energy / old energ
 
 The change is kept only if `cost < 1`. `alpha` is 1 for speed, 0.5 for balanced and 0 for carbon (or any value with `--alpha=0.3`).
 
+### Speed budget (`--max-slowdown`)
+
+Instead of choosing alpha, the user can give a time limit:
+
+```bash
+./ecoc bfs.eco bfs 60 --max-slowdown=5 --profile=profile_calibrated.txt
+```
+
+means "use as little energy as possible, but be at most 5% slower (estimated time) than the speed build". The compiler (`budget.c`) optimises the program with alpha = 1.00, 0.99, ... 0.00, runs each build quietly, and keeps the build with the least energy whose time is within the limit. It prints a table of the builds it found and which one it chose. If two alphas give exactly the same code, the second one is not run again.
+
 ### Energy model
 
 Instruction costs live in plain-text profile files, so they can be changed without touching the code:
@@ -189,7 +200,25 @@ The **uncalibrated** model predicted the carbon builds would be 49–63% slower;
 python3 sweep_sizes.py
 ```
 
-### 5. Correctness testing
+### 5. Speed budget
+
+`budget_sweep.py` asks for the greenest build within 0, 1, 2, 5, 10 and 20% of the speed build's time (calibrated profile, `results/budget/`). A 5% budget already gives most of the carbon goal's saving:
+
+| Benchmark | ≤ 2% slower | ≤ 5% slower | carbon goal |
+|---|---|---|---|
+| BFS | 0.0% | **13.3%** (5.0% slower) | 14.7% (6.2% slower) |
+| DFS | 0.0% | **13.2%** (4.9% slower) | 14.6% (6.1% slower) |
+| Dijkstra | 0.0% | **10.7%** (4.1% slower) | 11.8% (5.1% slower) |
+| Quick sort | 4.1% | **7.5%** (2.9% slower) | 7.5% (2.9% slower) |
+| Merge sort | 3.6% | **4.6%** (3.2% slower) | 4.6% (3.2% slower) |
+
+Energy saved is relative to the speed build. Every budget gives the same answer as the unoptimised program.
+
+```bash
+python3 budget_sweep.py
+```
+
+### 6. Correctness testing
 
 - Every benchmark's answer matches a separate Python implementation.
 - **Random (differential) testing:** `fuzz_test.py` generates random EcoLang programs (loops, if/else, arrays, function calls, multiplication and division by many constants, negative numbers, overflow) and checks that 15 settings (every goal, several profiles, single passes switched off, and compiled C) give exactly the same answer as the unoptimised program. **360 random programs, 5,400 runs, 0 differences.**
@@ -217,12 +246,13 @@ python3 fuzz_test.py 100       # test 100 random programs
 | `lexer.l`, `parser.y` | front end (flex + bison) |
 | `tac.c`, `tac.h` | three-address code |
 | `optimize.c`, `optimize.h` | optimisation passes and goal decisions |
+| `budget.c`, `budget.h` | speed-budget search (`--max-slowdown`) |
 | `interp.c`, `interp.h` | interpreter and sustainability report |
 | `cgen.c`, `cgen.h` | C back end |
 | `*.eco` | benchmarks and test programs |
 | `micro.eco` | microbenchmarks for calibration |
 | `profile_*.txt`, `energy_profile.txt` | energy and time cost tables |
-| `run_experiments.py`, `validate_timing.py`, `calibrate.py`, `sweep_sizes.py` | experiment scripts |
+| `run_experiments.py`, `validate_timing.py`, `calibrate.py`, `sweep_sizes.py`, `budget_sweep.py` | experiment scripts |
 | `fuzz_test.py` | random testing of the compiler |
 | `results/` | tables, CSV files and graphs |
 

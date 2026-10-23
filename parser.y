@@ -9,6 +9,7 @@
 #include "interp.h"
 #include "optimize.h"
 #include "cgen.h"
+#include "budget.h"
 
 int yylex(void);
 void yyerror(const char *msg);
@@ -262,7 +263,9 @@ void yyerror(const char *msg)
      --profile=myfile.txt                  -> use a different energy profile
      --quiet                               -> only print the report
      --csv                                 -> print one line of numbers (for scripts)
-     --emit-c=out.c                        -> also write the code as a C program   */
+     --emit-c=out.c                        -> also write the code as a C program
+     --max-slowdown=5                      -> speed budget: least energy while at most
+                                              5% slower than the speed build          */
 int main(int argc, char *argv[])
 {
     int do_opt = 0;
@@ -277,6 +280,8 @@ int main(int argc, char *argv[])
     char goal_text[64] = "none (no optimisation)";
     const char *profile_file = "energy_profile.txt";
     const char *c_file = NULL;
+    int use_budget = 0;
+    double max_slowdown = 0.0;
 
     const char *file_name = NULL;
     const char *func_name = "main";
@@ -301,6 +306,13 @@ int main(int argc, char *argv[])
             do_opt = 1;
             alpha = atof(argv[i] + 8);
             sprintf(goal_text, "custom (alpha = %.2f)", alpha);
+        } else if (strncmp(argv[i], "--max-slowdown=", 15) == 0) {
+            do_opt = 1;
+            use_budget = 1;
+            max_slowdown = atof(argv[i] + 15);
+            if (max_slowdown < 0.0) {
+                max_slowdown = 0.0;
+            }
         } else if (strncmp(argv[i], "--profile=", 10) == 0) {
             profile_file = argv[i] + 10;
         } else if (strncmp(argv[i], "--emit-c=", 9) == 0) {
@@ -366,6 +378,12 @@ int main(int argc, char *argv[])
     char passes[64] = "none";
     if (do_opt) {
         clock_t t0 = clock();
+        /* speed budget: first find the alpha, then optimise with it below */
+        if (use_budget) {
+            alpha = choose_alpha_for_budget(max_slowdown, cf, cp, dce, sr, cse, licm,
+                                            func_name, args, nargs, !csv_mode);
+            sprintf(goal_text, "budget %.1f%% (alpha = %.2f)", max_slowdown, alpha);
+        }
         optimize_program(cf, cp, dce, sr, cse, licm, alpha);
         clock_t t1 = clock();
         opt_time_ms = 1000.0 * (double) (t1 - t0) / CLOCKS_PER_SEC;

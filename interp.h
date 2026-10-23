@@ -24,5 +24,7 @@ int  get_category(const char *op);
 void load_profile(const char *filename);
 void run_program(const char *func_name, long long args[], int nargs,
                  const char *passes, const char *goal);
+void measure_program(const char *func_name, long long args[], int nargs,
+                     long long *answer, long long *cycles, long long *energy);
 
 #endif

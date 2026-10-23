@@ -948,6 +948,20 @@ static int apply_pass(int which)
     return changed;
 }
 
+/* sets all the summary counters back to 0 (the speed-budget search
+   optimises many times, so it clears them between tries) */
+void reset_opt_stats(void)
+{
+    changes_cf = 0;
+    changes_cp = 0;
+    changes_sr = 0;
+    changes_dce = 0;
+    changes_cse = 0;
+    changes_licm = 0;
+    decomposed = 0;
+    div_rewritten = 0;
+}
+
 void optimize_program(int do_cf, int do_cp, int do_dce, int do_sr,
                       int do_cse, int do_licm, double alpha)
 {
